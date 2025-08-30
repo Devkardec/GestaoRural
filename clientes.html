@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Clientes - AgroCultive</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4a7c59">
+    <link rel="icon" type="image/png" href="assets/img/capa2.png">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="clientes.css">
+</head>
+<body class="antialiased text-gray-800 bg-gradient-to-br from-green-50 to-blue-50">
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-3x text-green-600 mb-4"></i>
+            <p class="text-gray-600">Carregando gestão de clientes...</p>
+        </div>
+    </div>
+
+    <!-- Container Principal -->
+    <div class="min-h-screen p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <div class="flex items-center justify-center gap-4 mb-4">
+                <a href="index.html" class="text-green-600 hover:text-green-700 transition-colors">
+                    <i class="fas fa-arrow-left fa-2x"></i>
+                </a>
+                <img src="assets/img/Capa2.png" alt="AgroCultive Logo" class="h-16 object-contain">
+            </div>
+            <h1 class="text-3xl font-bold text-green-900 mb-2">Gestão de Clientes</h1>
+            <p class="text-gray-600">Gerencie seus clientes e registre vendas</p>
+        </header>
+
+        <!-- Conteúdo Principal -->
+        <main class="max-w-6xl mx-auto">
+            <!-- Botão Adicionar Cliente -->
+            <div class="mb-6">
+                <button id="add-client-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2">
+                    <i class="fas fa-user-plus"></i>
+                    Cadastrar Novo Cliente
+                </button>
+            </div>
+
+            <!-- Lista de Clientes -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-users text-green-600 mr-2"></i>
+                    Lista de Clientes
+                </h2>
+                <div id="client-list" class="space-y-4">
+                    <!-- Clientes serão carregados aqui dinamicamente -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Cadastro/Edição de Cliente -->
+    <div id="client-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="client-modal-title" class="text-xl font-semibold text-gray-800">Cadastrar Cliente</h2>
+                <button id="close-client-modal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            
+            <form id="client-form" class="space-y-4">
+                <div>
+                    <label for="client-name" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nome Completo *
+                    </label>
+                    <input type="text" id="client-name" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="Nome completo do cliente">
+                </div>
+                
+                <div>
+                    <label for="client-doc" class="block text-sm font-medium text-gray-700 mb-2">
+                        CPF/CNPJ *
+                    </label>
+                    <input type="text" id="client-doc" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="CPF ou CNPJ do cliente">
+                </div>
+                
+                <div>
+                    <label for="client-phone" class="block text-sm font-medium text-gray-700 mb-2">
+                        Telefone (WhatsApp) *
+                    </label>
+                    <input type="tel" id="client-phone" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="(61) 99999-9999">
+                </div>
+                
+                <div>
+                    <label for="client-email" class="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                    </label>
+                    <input type="email" id="client-email"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="email@exemplo.com">
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        <i class="fas fa-save mr-2"></i>
+                        Salvar
+                    </button>
+                    <button type="button" id="cancel-client-btn" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Nova Venda -->
+    <div id="sale-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="sale-modal-title" class="text-xl font-semibold text-gray-800">Nova Venda para [Nome do Cliente]</h2>
+                <button id="close-sale-modal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            
+            <form id="sale-form" class="space-y-4">
+                <div>
+                    <label for="sale-product-select" class="block text-sm font-medium text-gray-700 mb-2">
+                        Produto *
+                    </label>
+                    <select id="sale-product-select" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">Selecione um produto...</option>
+                        <!-- Produtos serão carregados dinamicamente -->
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="sale-quantity" class="block text-sm font-medium text-gray-700 mb-2">
+                        Quantidade *
+                    </label>
+                    <input type="number" id="sale-quantity" required min="1"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="Quantidade vendida">
+                </div>
+                
+                <div>
+                    <label for="sale-price" class="block text-sm font-medium text-gray-700 mb-2">
+                        Preço da Venda (R$) *
+                    </label>
+                    <input type="text" id="sale-price" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="0,00">
+                </div>
+                
+                <div>
+                    <label for="sale-date" class="block text-sm font-medium text-gray-700 mb-2">
+                        Data da Venda *
+                    </label>
+                    <input type="date" id="sale-date" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        <i class="fas fa-shopping-cart mr-2"></i>
+                        Registrar Venda
+                    </button>
+                    <button type="button" id="cancel-sale-btn" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Venda -->
+    <div id="sale-confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
+            <div class="text-center mb-4">
+                <i class="fas fa-check-circle fa-3x text-green-600 mb-2"></i>
+                <h2 class="text-xl font-semibold text-gray-800">Venda Registrada!</h2>
+                <p class="text-gray-600 mt-2">A venda foi registrada com sucesso.</p>
+            </div>
+            
+            <div class="space-y-3">
+                <button id="send-whatsapp-receipt" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2">
+                    <i class="fab fa-whatsapp"></i>
+                    Enviar Recibo por WhatsApp
+                </button>
+                
+                <button id="send-email-receipt" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2">
+                    <i class="fas fa-envelope"></i>
+                    Enviar Recibo por Email
+                </button>
+                
+                <button id="close-confirmation-modal" class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Recibos -->
+    <div id="receipts-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="receipts-modal-title" class="text-xl font-semibold text-gray-800">Recibos de [Nome do Cliente]</h2>
+                <button id="close-receipts-modal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            
+            <div id="receipts-list" class="space-y-4">
+                <!-- Lista de recibos será carregada aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização de Recibo -->
+    <div id="receipt-view-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Recibo Detalhado</h2>
+                <button id="close-receipt-view-modal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            
+            <div id="receipt-content" class="bg-gray-50 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap mb-4">
+                <!-- Conteúdo do recibo será exibido aqui -->
+            </div>
+            
+            <div class="flex gap-3">
+                <button id="copy-receipt" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors font-medium">
+                    <i class="fas fa-copy mr-2"></i>
+                    Copiar
+                </button>
+                <button id="share-receipt-whatsapp" class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                    <i class="fab fa-whatsapp mr-2"></i>
+                    WhatsApp
+                </button>
+                <button id="share-receipt-email" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                    <i class="fas fa-envelope mr-2"></i>
+                    Email
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <!-- SUBSTITUIR o toast atual por: -->
+    <div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- JavaScript -->
+    <script type="module" src="clientes.js"></script>
+</body>
+</html>

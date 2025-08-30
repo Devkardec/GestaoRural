@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroCultive - Offline</title>
+    <link rel="icon" type="image/png" href="assets/img/Capa2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+<link rel="stylesheet" href="assets/css/offline.inline.css">
+</head>
+<body class="min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto text-center p-8">
+        <div class="mb-8">
+            <img src="assets/img/faviconsf.png" alt="AgroCultive" class="w-24 h-24 mx-auto mb-4">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">AgroCultive</h1>
+            <p class="text-gray-600">Gestão Rural Completa</p>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="text-6xl mb-4">📡</div>
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">Você está offline</h2>
+            <p class="text-gray-600 mb-4">
+                Não foi possível conectar à internet. Algumas funcionalidades podem estar limitadas.
+            </p>
+            
+            <div class="space-y-3">
+                <button onclick="window.location.reload()" 
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                    🔄 Tentar novamente
+                </button>
+                
+                <button onclick="goHome()" 
+                        class="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors">
+                    🏠 Ir para início
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-blue-50 rounded-lg p-4">
+            <h3 class="font-semibold text-blue-800 mb-2">💡 Dica</h3>
+            <p class="text-blue-700 text-sm">
+                Dados salvos localmente estarão disponíveis quando você voltar online.
+            </p>
+        </div>
+    </div>
+    
+    <!--INLINE_SCRIPT_PLACEHOLDER-->
+<script src="assets/js/offline.inline.js"></script>
+</body>
+</html>

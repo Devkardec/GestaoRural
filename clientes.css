@@ -1,0 +1,655 @@
+/* clientes.css - Estilos para o módulo de gestão de clientes */
+
+/* Estilos base */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Animações personalizadas */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Estilos para a lista de clientes */
+.client-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.client-card:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.client-info {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: center;
+}
+
+.client-details h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.client-details p {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 0.125rem;
+}
+
+.client-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.client-actions button {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-sale {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.btn-sale:hover {
+    background-color: #2563eb;
+}
+
+.btn-edit {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.btn-edit:hover {
+    background-color: #d97706;
+}
+
+.btn-delete {
+    background-color: #ef4444;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #dc2626;
+}
+
+/* Estilos para modais */
+.modal {
+    backdrop-filter: blur(4px);
+}
+
+.modal > div {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+    .client-info {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .client-actions {
+        justify-content: center;
+    }
+    
+    .client-actions button {
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .client-actions {
+        flex-direction: column;
+    }
+    
+    .client-actions button {
+        width: 100%;
+    }
+}
+
+/* Estilos para campos de formulário */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Estilos para toast */
+#toast {
+    min-width: 300px;
+    max-width: 500px;
+}
+
+/* Estilos para loading */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* Estilos para estados vazios */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #d1d5db;
+}
+
+.empty-state h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.empty-state p {
+    font-size: 0.875rem;
+}
+
+/* Estilos para badges de status */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-active {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-inactive {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Estilos para histórico de vendas */
+.sales-history {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.sales-history h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.sales-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sale-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: #f9fafb;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.sale-date {
+    color: #6b7280;
+}
+
+.sale-amount {
+    font-weight: 600;
+    color: #059669;
+}
+
+/* Botão de recibos */
+.btn-receipt {
+    background: linear-gradient(135deg, #8b5cf6, #a855f7);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.btn-receipt:hover {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+/* Responsividade mobile para ações do cliente */
+@media (max-width: 640px) {
+    .client-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .client-actions button {
+        font-size: 0.75rem;
+        padding: 6px 8px;
+        min-width: unset;
+    }
+    
+    .client-actions button i {
+        font-size: 0.875rem;
+    }
+}
+
+/* ========================================= */
+/* ARQUITETURA ISOLADA PARA COMPONENTES DE RECIBO */
+/* Convenção BEM para isolamento total */
+/* ========================================= */
+
+/* COMPONENTE 1: Modal de Listagem de Recibos */
+/* Seletor específico: #receipts-modal */
+@media (max-width: 768px) {
+    /* receipt-list: Container principal da lista */
+    #receipts-modal .border.border-gray-200.rounded-lg.p-4 {
+        /* Força isolamento do componente */
+    }
+    
+    /* receipt-list__item-grid: Grid de informações do item */
+    #receipts-modal .border.border-gray-200.rounded-lg.p-4 > div[style*="grid-template-columns"] {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+        /* Isolamento: apenas itens dentro do modal de listagem */
+    }
+    
+    /* receipt-list__item-product: Informações do produto */
+    #receipts-modal .border.border-gray-200.rounded-lg.p-4 > div[style*="grid-template-columns"] > div:first-child {
+        flex: 1 1 100%;
+        min-width: 0;
+        margin-bottom: 8px;
+    }
+    
+    /* receipt-list__item-meta: Data e valor */
+    #receipts-modal .border.border-gray-200.rounded-lg.p-4 > div[style*="grid-template-columns"] > div:not(:first-child) {
+        flex: 1 1 auto;
+        min-width: 80px;
+        text-align: center;
+        padding: 4px 8px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+    
+    /* receipt-list__actions: Botões de ação */
+    #receipts-modal .grid.grid-cols-2.md\:grid-cols-4 {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+        margin-top: 12px;
+    }
+    
+    #receipts-modal .grid.grid-cols-2.md\:grid-cols-4 button {
+        font-size: 0.75rem !important;
+        padding: 6px 8px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* receipt-list__item-meta--stacked: Empilha em telas pequenas */
+    #receipts-modal .border.border-gray-200.rounded-lg.p-4 > div[style*="grid-template-columns"] {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    #receipts-modal .border.border-gray-200.rounded-lg.p-4 > div[style*="grid-template-columns"] > div:not(:first-child) {
+        text-align: left;
+        margin-bottom: 4px;
+    }
+}
+
+/* ========================================= */
+/* CORREÇÃO ESPECÍFICA: RECIBO DETALHADO */
+/* Arquitetura BEM isolada para evitar conflitos */
+/* ========================================= */
+
+/* COMPONENTE: Modal de Recibo Detalhado (openModernReceiptModal) */
+/* Seletor específico baseado na estrutura única do modal */
+
+/* receipt-detail: Container principal identificado pela estrutura única */
+.fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl.shadow-2xl.w-full.max-w-2xl {
+    /* Identificador único para o modal de recibo detalhado */
+}
+
+/* receipt-detail__product-section: Seção de detalhes do produto */
+.fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl .border.rounded-xl.overflow-hidden .p-4[style*="display:grid"] {
+    /* Grid de produto já tratado anteriormente */
+}
+
+/* receipt-detail__summary-row: Linha crítica - Data da venda + Total */
+.fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl .p-6 > .flex.items-center.justify-between {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 16px !important;
+    min-height: 48px;
+    padding: 12px 0;
+    flex-wrap: nowrap !important;
+    /* Força o comportamento correto em todas as telas */
+}
+
+/* receipt-detail__date-label: "Data da venda" */
+.fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl .p-6 > .flex.items-center.justify-between > span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Garante que o texto não quebre */
+}
+
+/* receipt-detail__total-value: Valor total */
+.fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl .p-6 > .flex.items-center.justify-between > span:last-child {
+    flex-shrink: 0;
+    margin-left: auto;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #059669;
+    white-space: nowrap;
+    text-align: right;
+    /* Valor sempre à direita, sem quebra */
+}
+
+/* RESPONSIVIDADE ESPECÍFICA */
+@media (max-width: 768px) {
+    /* receipt-detail__summary-row--tablet: Ajustes para tablet */
+    .fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl .p-6 > .flex.items-center.justify-between {
+        gap: 12px !important;
+        padding: 16px 0;
+    }
+    
+    .fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl .p-6 > .flex.items-center.justify-between > span:first-child {
+        font-size: 0.8125rem;
+        max-width: 60%;
+    }
+    
+    .fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl .p-6 > .flex.items-center.justify-between > span:last-child {
+        font-size: 1.125rem;
+        min-width: 35%;
+    }
+}
+
+@media (max-width: 480px) {
+    /* receipt-detail__summary-row--mobile: Layout empilhado para mobile */
+    .fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl .p-6 > .flex.items-center.justify-between {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        text-align: center;
+        padding: 20px 0;
+        border-top: 2px solid #e5e7eb;
+        background-color: #f9fafb;
+        border-radius: 8px;
+        margin-top: 12px;
+    }
+    
+    /* receipt-detail__date-label--mobile: Data em mobile */
+    .fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl .p-6 > .flex.items-center.justify-between > span:first-child {
+        font-size: 0.875rem;
+        color: #374151;
+        font-weight: 600;
+        text-align: center;
+        max-width: 100%;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #d1d5db;
+    }
+    
+    /* receipt-detail__total-value--mobile: Total destacado em mobile */
+    .fixed.inset-0.bg-black.bg-opacity-50 .bg-white.rounded-2xl .p-6 > .flex.items-center.justify-between > span:last-child {
+        font-size: 1.5rem !important;
+        font-weight: 800;
+        color: #059669;
+        text-align: center;
+        padding: 12px;
+        background-color: #f0fdf4;
+        border: 2px solid #10b981;
+        border-radius: 8px;
+        min-width: 100%;
+        margin-left: 0;
+    }
+}
+
+/* ========================================= */
+/* FIM DA CORREÇÃO ESPECÍFICA */
+/* ========================================= */
+
+/* COMPONENTE AUXILIAR: Conteúdo de recibo (mantido isolado) */
+.receipt-content {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    /* Isolado: não afeta outros componentes */
+}
+
+/* ========================================= */
+/* FIM DA ARQUITETURA ISOLADA */
+/* ========================================= */
+
+/* ========================================= */
+/* CORREÇÃO: OVERFLOW NA SEÇÃO "ÚLTIMAS VENDAS" */
+/* Seletor específico para evitar conflitos */
+/* ========================================= */
+
+/* client-sales: Container das últimas vendas nos cards de clientes */
+.client-card .sales-history .sales-list .sale-item[style*="display:grid"] {
+    /* Sobrescreve o grid inline com flexbox responsivo */
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px 16px !important;
+    width: 100% !important;
+    /* Garante que não ultrapasse os limites do card */
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* client-sales__product: Nome do produto com quantidade */
+.client-card .sales-history .sales-list .sale-item[style*="display:grid"] > span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 500;
+    color: #374151;
+    /* Permite quebra de texto se necessário */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* client-sales__date: Data da venda */
+.client-card .sales-history .sales-list .sale-item[style*="display:grid"] > span.sale-date {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: center !important;
+    min-width: 80px;
+    /* Garante espaço mínimo para a data */
+}
+
+/* client-sales__amount: Valor da venda */
+.client-card .sales-history .sales-list .sale-item[style*="display:grid"] > span.sale-amount {
+    flex-shrink: 0;
+    font-weight: 600;
+    color: #059669;
+    text-align: right !important;
+    min-width: 70px;
+    /* Garante espaço mínimo para o valor */
+}
+
+/* RESPONSIVIDADE ESPECÍFICA */
+@media (max-width: 768px) {
+    /* client-sales--tablet: Ajustes para tablet */
+    .client-card .sales-history .sales-list .sale-item[style*="display:grid"] {
+        gap: 6px 12px !important;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .client-card .sales-history .sales-list .sale-item[style*="display:grid"] > span.sale-date {
+        min-width: 70px;
+        font-size: 0.6875rem;
+    }
+    
+    .client-card .sales-history .sales-list .sale-item[style*="display:grid"] > span.sale-amount {
+        min-width: 60px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* client-sales--mobile: Layout empilhado para mobile */
+    .client-card .sales-history .sales-list .sale-item[style*="display:grid"] {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 4px !important;
+        text-align: left;
+        padding: 0.75rem;
+        background-color: #f1f5f9;
+        border-left: 3px solid #059669;
+    }
+    
+    /* client-sales__product--mobile: Produto em destaque */
+    .client-card .sales-history .sales-list .sale-item[style*="display:grid"] > span:first-child {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 4px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    /* client-sales__meta--mobile: Data e valor em linha */
+    .client-card .sales-history .sales-list .sale-item[style*="display:grid"] > span.sale-date,
+    .client-card .sales-history .sales-list .sale-item[style*="display:grid"] > span.sale-amount {
+        display: inline-block;
+        text-align: left !important;
+        min-width: auto;
+        margin-right: 16px;
+    }
+    
+    .client-card .sales-history .sales-list .sale-item[style*="display:grid"] > span.sale-amount {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #059669;
+        margin-right: 0;
+        float: right;
+    }
+}
+
+/* FALLBACK: Garante que o container pai não transborde */
+.client-card .sales-history {
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+
+.client-card .sales-history .sales-list {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* ========================================= */
+/* FIM DA CORREÇÃO DE OVERFLOW */
+/* ========================================= */

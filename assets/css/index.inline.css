@@ -1,0 +1,1838 @@
+/* === RESET E BASE === */
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f0f2f5;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    /* === MODAIS E COMPONENTES BASE === */
+    .modal-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 40;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(4px);
+    }
+
+    #confirm-modal,
+    #edit-observation-modal,
+    #animal-sub-modal,
+    #employee-financial-modal,
+    #sales-modal {
+        z-index: 50;
+    }
+
+    #add-animal-modal {
+        z-index: 60;
+    }
+
+    .modal-hidden {
+        display: none !important;
+    }
+
+    body.modal-open {
+        overflow: hidden;
+    }
+
+    .modal {
+        max-height: 90vh;
+        overflow-y: auto;
+        max-width: 95vw;
+        width: 100%;
+    }
+
+    /* NOVO: Sistema de Toast Global */
+    #toast-container {
+        position: fixed;
+        top: 80px; /* Abaixo do header */
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+        max-width: 90vw;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .toast-notification {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        border-left: 4px solid #22c55e;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        pointer-events: auto;
+        transform: translateY(-100px);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        min-width: 300px;
+    }
+
+    .toast-notification.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .toast-notification.hide {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    /* Tipos de Toast */
+    .toast-notification.success {
+        border-left-color: #22c55e;
+    }
+
+    .toast-notification.error {
+        border-left-color: #ef4444;
+    }
+
+    .toast-notification.warning {
+        border-left-color: #f59e0b;
+    }
+
+    .toast-notification.info {
+        border-left-color: #3b82f6;
+    }
+
+    /* Ícones dos tipos */
+    .toast-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .toast-notification.success .toast-icon {
+        background-color: #22c55e;
+    }
+
+    .toast-notification.error .toast-icon {
+        background-color: #ef4444;
+    }
+
+    .toast-notification.warning .toast-icon {
+        background-color: #f59e0b;
+    }
+
+    .toast-notification.info .toast-icon {
+        background-color: #3b82f6;
+    }
+
+    /* Conteúdo do toast */
+    .toast-content {
+        flex: 1;
+        color: #374151;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+
+    /* Botão de fechar */
+    .toast-close {
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .toast-close:hover {
+        background-color: #f3f4f6;
+        color: #6b7280;
+    }
+
+    /* Responsividade */
+    @media (max-width: 640px) {
+        #toast-container {
+            top: 60px;
+            left: 16px;
+            right: 16px;
+            transform: none;
+            max-width: none;
+        }
+        
+        .toast-notification {
+            min-width: auto;
+        }
+    }
+
+    /* === COMPONENTES ESPECÍFICOS === */
+    .tab-button.active {
+        border-color: #2c5282;
+        color: #2c5282;
+        background-color: #ebf8ff;
+    }
+
+    .details-section summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .details-section summary {
+        list-style: none;
+    }
+
+    .status-card.active {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 2px #3b82f6;
+    }
+
+    .calendar-day {
+        padding: 8px;
+        border: 1px solid #e2e8f0;
+        min-height: 80px;
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .calendar-day:hover {
+        background-color: #f0f4f8;
+    }
+
+    .calendar-day.today {
+        background-color: #ebf8ff;
+        border-color: #3b82f6;
+    }
+
+    .calendar-day.has-event {
+        background-color: #feebc8;
+    }
+
+    /* Otimização específica para o texto do evento em dispositivos móveis */
+    .calendar-day .text-xs {
+        font-size: 0.75rem;
+        line-height: 1.1;
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: 100%;
+    }
+
+    /* Media query para dispositivos muito pequenos */
+    @media (max-width: 320px) {
+        .calendar-day {
+            min-height: 70px;
+            padding: 6px;
+        }
+        
+        .calendar-day .text-xs {
+            font-size: 0.7rem;
+        }
+    }
+
+    .category-btn {
+        transition: all 0.2s;
+    }
+
+    .category-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .category-btn.active,
+    .animal-type-btn.active,
+    .animal-tab-btn.active,
+    .sale-type-btn.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #2563eb;
+    }
+
+    .transaction-item,
+    .animal-item {
+        transition: all 0.2s;
+    }
+
+    .transaction-item:hover,
+    .animal-item:hover {
+        background-color: #f8fafc;
+    }
+
+    .month-selector {
+        background-color: #f1f5f9;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    /* === MOBILE FIRST - BARRA DE AÇÕES === */
+    .action-bar {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-bar .flex {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .action-bar .search-container {
+        width: 100%;
+    }
+
+    .action-bar input[type="text"] {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    .action-bar input[type="text"]:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Grid de botões mobile - layout uniforme 2x6 */
+    .action-bar .buttons-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(6, 1fr); /* 6 linhas iguais */
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        height: auto;
+    }
+
+    .action-bar button {
+        padding: 1rem 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        min-height: 85px; /* Altura uniforme para todos */
+        height: 85px; /* Força altura fixa */
+        word-wrap: break-word;
+        hyphens: auto;
+        line-height: 1.2;
+    }
+
+    .action-bar button i {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Posicionamento específico dos botões no grid mobile - TODOS COM MESMO TAMANHO */
+    .action-bar button:nth-child(1) { grid-column: 1; grid-row: 1; } /* Pacote Premium */
+    .action-bar button:nth-child(2) { grid-column: 2; grid-row: 1; } /* Agendar Aplicação */
+    .action-bar button:nth-child(3) { grid-column: 1; grid-row: 2; } /* Animais */
+    .action-bar button:nth-child(4) { grid-column: 2; grid-row: 2; } /* Calendário */
+    .action-bar button:nth-child(5) { grid-column: 1; grid-row: 3; } /* Calendário Lunar */
+    .action-bar button:nth-child(6) { grid-column: 2; grid-row: 3; } /* Estoque */
+    .action-bar button:nth-child(7) { grid-column: 1; grid-row: 4; } /* Funcionários */
+    .action-bar button:nth-child(8) { grid-column: 2; grid-row: 4; } /* Clientes */
+    .action-bar button:nth-child(9) { grid-column: 1; grid-row: 5; } /* Livro Caixa - MESMO TAMANHO */
+    .action-bar button:nth-child(10) { grid-column: 2; grid-row: 5; } /* Novo Plantio */
+    .action-bar button:nth-child(11) { grid-column: 1; grid-row: 6; } /* Vender Produção */
+    .action-bar button:nth-child(12) { grid-column: 2; grid-row: 6; } /* Propriedade */
+
+    /* Ajuste específico para dispositivos móveis muito pequenos */
+    @media (max-width: 480px) {
+        .action-bar .buttons-container {
+            gap: 0.5rem;
+            max-width: 100%;
+        }
+        
+        .action-bar button {
+            min-height: 80px;
+            height: 80px;
+            font-size: 0.8rem;
+            padding: 0.75rem 0.25rem;
+        }
+        
+        .action-bar button i {
+            font-size: 1.1rem;
+        }
+    }
+
+    /* Cores dos botões */
+    #schedule-btn { background: linear-gradient(135deg, #f97316, #ea580c); }
+    #manage-animals-btn { background: linear-gradient(135deg, #ca8a04, #a16207); }
+    #calendar-btn { background: linear-gradient(135deg, #eab308, #ca8a04); }
+    #lunar-calendar-btn { background: linear-gradient(135deg, #6b7280, #4b5563); }
+    #manage-supplies-btn { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+    #manage-employees-btn { background: linear-gradient(135deg, #a855f7, #9333ea); }
+    #cashbook-btn { background: linear-gradient(135deg, #4f46e5, #4338ca); }
+    #add-planting-btn { background: linear-gradient(135deg, #16a34a, #15803d); }
+    #add-sale-btn { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+
+    /* === MOBILE FIRST - DASHBOARD GRID === */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 1rem;
+    }
+
+    .dashboard-grid > div {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .dashboard-grid > div:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    /* === MOBILE FIRST - WIDGET DE CLIMA === */
+    .compact-weather-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        border-radius: 20px;
+        padding: 1.5rem;
+        border: none;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .compact-weather-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transform: rotate(45deg);
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    .weather-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .weather-header .city-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .weather-header .current-date {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0.5rem 0 0 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Layout vertical para mobile */
+    .current-weather {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .weather-main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 15px;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .weather-icon {
+        margin-bottom: 0.75rem;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    .temperature-info .current-temp {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #ffffff;
+        display: block;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .temperature-info .weather-description {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0.5rem 0 0 0;
+        font-weight: 500;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .weather-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 15px;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .weather-details .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.95);
+        font-weight: 500;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .weather-details .detail-item i {
+        width: 18px;
+        color: #fbbf24;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+
+    .weather-separator {
+        height: 2px;
+        background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.5), transparent);
+        margin: 1.5rem 0;
+        border: none;
+        border-radius: 1px;
+    }
+
+    /* Previsão de 3 dias para mobile */
+    .forecast-5day {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .forecast-day {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 0.75rem 0.5rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .forecast-day:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .forecast-day .day-name {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .forecast-day .day-icon {
+        margin: 0.5rem 0;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+
+    .forecast-day .day-temps {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .forecast-day .temp-max {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .forecast-day .temp-min {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* === COMPONENTES FINANCEIROS === */
+    .financial-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .financial-indicator.positive {
+        border-left-color: #10b981;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+
+    .financial-indicator.negative {
+        border-left-color: #ef4444;
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    }
+
+    .financial-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .financial-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    /* === OUTROS COMPONENTES === */
+    .moon-phase {
+        position: absolute;
+        top: 2px;
+        right: 4px;
+        font-size: 1.25rem;
+        opacity: 0.7;
+    }
+
+    .lunar-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .lunar-legend-icon {
+        font-size: 1.5rem;
+        width: 2rem;
+        text-align: center;
+    }
+
+    /* === NOVA CALCULADORA MODERNA (COM CONTRASTE CORRIGIDO) === */
+    #calculator-widget {
+        display: none;
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 300px;
+        background-color: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        overflow: hidden;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    #calculator-header {
+        background-color: rgba(0, 0, 0, 0.2);
+        padding: 10px 15px;
+        cursor: move;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    #calculator-display {
+        padding: 15px 20px;
+        min-height: 90px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end; /* Align to bottom */
+        background-color: rgba(0, 0, 0, 0.3);
+        text-align: right;
+        word-wrap: break-word;
+        overflow: hidden;
+    }
+    #calc-expression-display {
+        font-size: 0.9rem;
+        color: #cbd5e0;
+        min-height: 20px;
+        opacity: 0.7;
+    }
+    #calc-main-display {
+        font-size: 2.2rem;
+        font-weight: 600;
+    }
+    #calculator-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .calc-btn {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: none;
+        padding: 22px;
+        font-size: 1.3rem;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .calc-btn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+    .calc-btn.operator {
+        background-color: rgba(0, 0, 0, 0.2);
+    }
+    .calc-btn.operator:hover,
+    .calc-btn.operator:active {
+        background-color: rgba(0, 0, 0, 0.4); /* Escurece um pouco o fundo */
+    }
+    .calc-btn.apply {
+        grid-column: 1 / -1;
+        background-color: #2563eb;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    #calculator-toggle-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background-color: #2563eb;
+        color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.5rem;
+        transition: all 0.3s;
+        z-index: 999;
+    }
+
+    #calculator-toggle-btn:hover {
+        background-color: #1d4ed8;
+        transform: scale(1.1);
+    }
+
+    /* === SCROLLBARS === */
+    .modal::-webkit-scrollbar,
+    .overflow-y-auto::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .modal::-webkit-scrollbar-track,
+    .overflow-y-auto::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .modal::-webkit-scrollbar-thumb,
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+    .modal::-webkit-scrollbar-thumb:hover,
+    .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    /* === AUTENTICAÇÃO === */
+    #app-container {
+        display: none;
+    }
+
+    #auth-container {
+        display: flex;
+    }
+
+    .login-btn-spinner,
+    .register-btn-spinner,
+    .forgot-btn-spinner {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* === DICA DO DIA === */
+    .daily-tip-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-left: 4px solid #3b82f6;
+        transition: all 0.3s ease;
+    }
+
+    .daily-tip-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    #daily-tip-text {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #374151;
+        font-style: italic;
+    }
+
+    .tip-icon {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    /* === LISTA DE PLANTIOS === */
+    #planting-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* === ANIMAÇÕES === */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dashboard-grid > div {
+        animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .dashboard-grid > div:nth-child(2) { animation-delay: 0.1s; }
+    .dashboard-grid > div:nth-child(3) { animation-delay: 0.2s; }
+    .dashboard-grid > div:nth-child(4) { animation-delay: 0.3s; }
+
+    /* === TABLET RESPONSIVO === */
+    @media (min-width: 768px) {
+        .action-bar {
+            padding: 1.5rem;
+        }
+
+        .action-bar .buttons-container {
+            grid-template-columns: repeat(3, 1fr);
+            max-width: 600px;
+            gap: 1rem;
+        }
+
+        .action-bar button {
+            padding: 1.25rem 1rem;
+            font-size: 1rem;
+            min-height: 100px;
+        }
+
+        .action-bar button:nth-child(1) { grid-column: 1; grid-row: 1; }
+        .action-bar button:nth-child(2) { grid-column: 2; grid-row: 1; }
+        .action-bar button:nth-child(3) { grid-column: 3; grid-row: 1; }
+        .action-bar button:nth-child(4) { grid-column: 1; grid-row: 2; }
+        .action-bar button:nth-child(5) { grid-column: 2; grid-row: 2; }
+        .action-bar button:nth-child(6) { grid-column: 3; grid-row: 2; }
+        .action-bar button:nth-child(7) { grid-column: 1; grid-row: 3; }
+        .action-bar button:nth-child(8) { grid-column: 2; grid-row: 3; }
+        .action-bar button:nth-child(9) { grid-column: 3; grid-row: 3; }
+
+        .dashboard-grid {
+            grid-template-columns: repeat(2, 1fr);
+            padding: 0 1.5rem;
+        }
+
+        .current-weather {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .forecast-5day {
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+        }
+
+        #planting-list {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+    }
+
+    /* === DESKTOP RESPONSIVO === */
+    @media (min-width: 1024px) {
+        .action-bar {
+            padding: 2rem;
+        }
+
+        .action-bar .flex {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .action-bar .search-container {
+            width: auto;
+            min-width: 300px;
+        }
+
+        .action-bar .buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            width: 100%;
+            max-width: none;
+            justify-content: center; /* Centraliza os botões */
+        }
+
+        .action-bar button {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            min-height: 50px;
+            height: 50px;
+            flex-direction: row;
+            white-space: nowrap;
+            border-radius: 8px;
+            flex: 0 0 auto; /* Não cresce nem encolhe, tamanho automático */
+            min-width: 140px; /* Largura mínima para uniformidade */
+        }
+
+        .action-bar button i {
+            margin-bottom: 0;
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 2fr 1fr;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        #planting-list {
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        }
+    }
+
+    /* === TELAS GRANDES - Distribuição ainda melhor === */
+    @media (min-width: 1440px) {
+        .dashboard-grid {
+            max-width: 1600px;
+        }
+        
+        .action-bar .buttons-container {
+            justify-content: space-evenly; /* Distribui uniformemente */
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .action-bar button {
+            min-height: 45px;
+            height: 45px;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.95rem;
+            min-width: 130px;
+        }
+        
+        .action-bar button i {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Melhorias para o modal de confirmação */
+    #confirm-modal .modal {
+        animation: modalSlideIn 0.3s ease-out;
+        transform-origin: center;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    #confirm-modal .modal-backdrop {
+        backdrop-filter: blur(4px);
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    /* Efeitos hover melhorados */
+    #confirm-cancel-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    #confirm-ok-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    /* Responsividade para mobile */
+    @media (max-width: 480px) {
+        #confirm-modal .modal {
+            margin: 1rem;
+            width: calc(100% - 2rem);
+        }
+        
+        #confirm-modal .flex.gap-3 {
+            flex-direction: column;
+        }
+        
+        #confirm-modal button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* CSS responsivo para o calendário em dispositivos móveis */
+    @media (max-width: 480px) {
+        /* Torna as células do calendário fluidas e quadradas */
+        .calendar-day {
+            min-height: auto; /* Remove a altura mínima fixa */
+            aspect-ratio: 1 / 1; /* Força a célula a ser um quadrado perfeito */
+            padding: 4px; /* Reduz o espaçamento interno */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Alinha o número em cima e o texto embaixo */
+            align-items: center;
+        }
+
+        /* Reduz o tamanho da fonte dos cabeçalhos (Dom, Seg, etc.) */
+        #calendar-grid > .font-semibold {
+            font-size: 0.7rem;
+            padding: 4px 0;
+        }
+        
+        /* Reduz o tamanho da fonte do número do dia */
+        .calendar-day > .font-medium {
+            font-size: 0.75rem;
+            line-height: 1;
+        }
+
+        /* Estiliza o texto da aplicação (ex: "1 Apl.") */
+        .calendar-day > .text-xs {
+            font-size: 0.65rem;
+            line-height: 1;
+            padding: 2px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+
+/* === CORREÇÕES PARA LINKS E BOTÕES === */
+/* Remover sublinhado de todos os links que funcionam como botões */
+a.action-button {
+    text-decoration: none !important;
+}
+
+a.action-button:hover,
+a.action-button:focus,
+a.action-button:visited {
+    text-decoration: none !important;
+}
+
+/* Correções para responsividade mobile */
+
+/* Botão Livro Caixa - ajustar tamanho */
+@media (max-width: 768px) {
+    .action-button[href="#livro-caixa"] {
+        grid-column: span 2;
+        min-height: 80px;
+    }
+    
+    /* Ajustar grid para melhor distribuição */
+    .action-buttons {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+/* === MODAL DE ESTOQUE DE INSUMOS - ESPAÇAMENTO CORRIGIDO === */
+
+/* Layout responsivo para dispositivos móveis */
+@media (max-width: 768px) {
+    /* Modal container - ESPAÇAMENTO REDUZIDO */
+    #supplies-modal .modal {
+        width: 95vw;
+        max-width: none;
+        margin: 0.5rem;
+        padding: 1rem;
+        max-height: 95vh;
+        border-radius: 1rem;
+    }
+    
+    /* Título do modal - MARGIN REDUZIDA */
+    #supplies-modal h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+        text-align: center;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    /* Grid principal - GAP REDUZIDO */
+    #supplies-modal .grid.md\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem;
+    }
+    
+    /* Seção do formulário - PADDING REDUZIDO */
+    #supplies-form {
+        order: 1;
+        background: #f8fafc;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Título das seções - MARGIN REDUZIDA */
+    #supplies-modal h3 {
+        font-size: 1.125rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.25rem;
+    }
+    
+    /* Container dos botões de categoria - MARGIN REDUZIDA */
+    #supply-category-buttons {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.5rem;
+        margin: 0.5rem 0;
+    }
+    
+    /* Campos do formulário - ESPAÇAMENTO COMPACTO */
+    #supplies-form .space-y-4 > * + * {
+        margin-top: 0.75rem;
+    }
+    
+    /* Seção de detalhes da compra - MARGIN REDUZIDA */
+    #supplies-form .bg-gray-100 {
+        background-color: #f1f5f9;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        margin: 0.5rem 0;
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Título da seção de detalhes - MARGIN REDUZIDA */
+    #supplies-form .bg-gray-100 p {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    /* Grid de detalhes - GAP REDUZIDO */
+    #supplies-form .grid.grid-cols-2 {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    
+    /* Seção da lista de insumos - PADDING REDUZIDO */
+    #supplies-modal .grid > div:last-child {
+        order: 2;
+        background: #f8fafc;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+        min-height: 300px;
+    }
+    
+    /* Lista de insumos - ALTURA REDUZIDA */
+    #supplies-list {
+        min-height: 200px;
+        max-height: 250px;
+        overflow-y: auto;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+    }
+    
+    /* Items da lista - PADDING REDUZIDO */
+    #supplies-list > div {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Labels - MARGIN REDUZIDA */
+    #supplies-form label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    
+    /* Botões do formulário - ESPAÇAMENTO OTIMIZADO */
+    #supplies-form .flex.justify-end {
+        margin-top: 0.75rem;
+        gap: 0.5rem;
+    }
+}
+
+/* Para telas muito pequenas (480px) - AINDA MAIS COMPACTO */
+@media (max-width: 480px) {
+    #supplies-modal .modal {
+        width: 98vw;
+        margin: 0.25rem;
+        padding: 0.75rem;
+    }
+    
+    /* Grid principal ainda mais compacto */
+    #supplies-modal .grid.md\:grid-cols-2 {
+        gap: 0.5rem;
+    }
+    
+    /* Seções ainda mais compactas */
+    #supplies-form,
+    #supplies-modal .grid > div:last-child {
+        padding: 0.5rem;
+    }
+    
+    /* Título do modal menor */
+    #supplies-modal h2 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Títulos das seções menores */
+    #supplies-modal h3 {
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+}
+/* === MODAL DE ESTOQUE DE INSUMOS - RESPONSIVIDADE CORRIGIDA === */
+
+/* Melhorias gerais para o modal de insumos */
+#supplies-modal .modal {
+    max-height: 95vh;
+    overflow-y: auto;
+}
+
+/* Layout responsivo para dispositivos móveis */
+@media (max-width: 768px) {
+    /* Modal container ajustado para mobile - CORRIGIDO */
+    #supplies-modal .modal {
+        width: 95vw;
+        max-width: none;
+        margin: 0.5rem;
+        padding: 1.5rem 1rem;
+        max-height: 95vh;
+        border-radius: 1rem;
+    }
+    
+    /* Título do modal - CORRIGIDO */
+    #supplies-modal h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    /* Grid principal: SEMPRE 1 coluna em mobile */
+    #supplies-modal .grid.md\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 2rem;
+    }
+    
+    /* Seção do formulário */
+    #supplies-form {
+        order: 1;
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Título das seções */
+    #supplies-modal h3 {
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+    }
+    
+    /* Container dos botões de categoria - CORRIGIDO */
+    #supply-category-buttons {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    /* Botões de categoria - CORRIGIDOS */
+    #supply-category-buttons button {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        border: 1px solid #d1d5db;
+        background-color: #ffffff;
+        color: #374151;
+        transition: all 0.2s;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Botão ativo - CORRIGIDO */
+    #supply-category-buttons button.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #2563eb;
+        font-weight: 600;
+    }
+    
+    /* Campos do formulário - CORRIGIDOS */
+    #supplies-form input,
+    #supplies-form select {
+        padding: 0.75rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #d1d5db;
+        background-color: #ffffff;
+    }
+    
+    /* Labels - CORRIGIDAS */
+    #supplies-form label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    /* Seção de detalhes da compra - CORRIGIDA */
+    #supplies-form .bg-gray-100 {
+        background-color: #f1f5f9;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin: 1rem 0;
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Grid de detalhes sempre em 2 colunas em mobile */
+    #supplies-form .grid.grid-cols-2 {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    /* Seção da lista de insumos - CORRIGIDA */
+    #supplies-modal .grid > div:last-child {
+        order: 2;
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+        min-height: 400px;
+    }
+    
+    /* Lista de insumos - VISÍVEL E FUNCIONAL */
+    #supplies-list {
+        min-height: 300px;
+        max-height: 350px;
+        overflow-y: auto;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+    }
+    
+    /* Items da lista - MELHORADOS */
+    #supplies-list > div {
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Botões de ação */
+    #supplies-form button {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        min-height: 48px;
+    }
+}
+
+/* Para telas muito pequenas (480px) */
+@media (max-width: 480px) {
+    #supplies-modal .modal {
+        width: 98vw;
+        margin: 0.25rem;
+        padding: 1rem 0.75rem;
+    }
+    
+    /* Grid de detalhes em 1 coluna para telas muito pequenas */
+    #supplies-form .grid.grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem;
+    }
+    
+    /* Botões de categoria em grid 2x5 para telas pequenas */
+    #supply-category-buttons {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem;
+    }
+    
+    #supply-category-buttons button {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* === MODAL DE AGENDAMENTO - RESPONSIVIDADE IGUAL À IMAGEM === */
+
+/* Layout responsivo para o modal de agendamento */
+@media (max-width: 768px) {
+    /* Modal de agendamento ajustado para mobile */
+    #schedule-modal .modal {
+        width: 95vw;
+        max-width: none;
+        margin: 0.5rem;
+        padding: 1rem;
+        max-height: 95vh;
+        overflow-y: auto;
+    }
+    
+    /* Título do modal menor */
+    #schedule-modal h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    /* Filtros de categoria em layout de chips com quebra de linha */
+    #schedule-category-filters {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
+        grid-template-columns: none !important;
+        /* Removido: overflow-x, scrollbar properties */
+    }
+    
+    /* Botões de categoria do agendamento - estilo chips */
+    #schedule-category-filters button {
+        /* Removido: flex-shrink: 0, min-width: fit-content */
+        flex: 0 0 auto;
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        white-space: nowrap;
+        border-radius: 1rem; /* Mais arredondado para efeito chip */
+        border: 1px solid #d1d5db;
+        background-color: #f9fafb;
+        color: #374151;
+        transition: all 0.2s;
+        cursor: pointer;
+        min-height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Botão ativo nos filtros */
+    #schedule-category-filters button.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #2563eb;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    }
+    
+    /* Removido: scrollbar styles pois não há mais scroll horizontal */
+    
+    /* Lista de insumos do estoque compacta */
+    #schedule-supply-from-stock {
+        max-height: 120px;
+        font-size: 0.875rem;
+        padding: 0.5rem;
+    }
+    
+    /* Campos do formulário de agendamento */
+    #schedule-form input,
+    #schedule-form select,
+    #schedule-form textarea {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+        min-height: 40px;
+    }
+    
+    /* Labels menores */
+    #schedule-form label {
+        font-size: 0.75rem;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+    }
+    
+    /* Campo de quantidade com unidade */
+    #schedule-form .flex.items-center.gap-2 {
+        flex-direction: row;
+        gap: 0.5rem;
+    }
+    
+    #schedule-quantity {
+        flex: 2;
+    }
+    
+    #schedule-unit {
+        flex: 1;
+        min-width: 80px;
+    }
+}
+
+/* Ajustes para telas muito pequenas */
+@media (max-width: 480px) {
+    /* Modal ainda mais compacto */
+    #schedule-modal .modal {
+        width: 98vw;
+        margin: 0.25rem;
+        padding: 0.75rem;
+        max-height: 98vh;
+    }
+    
+    /* Título ainda menor */
+    #schedule-modal h2 {
+        font-size: 1.125rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Botões de categoria menores mas mantendo o layout de chips */
+    #schedule-category-filters button {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+        border-radius: 0.75rem;
+        min-height: 28px;
+    }
+    
+    /* Lista de insumos ainda mais compacta */
+    #schedule-supply-from-stock {
+        max-height: 100px;
+        font-size: 0.8rem;
+    }
+    
+    /* Campos ainda menores */
+    #schedule-form input,
+    #schedule-form select,
+    #schedule-form textarea {
+        font-size: 0.8rem;
+        padding: 0.4rem;
+    }
+    
+    /* Campo de quantidade em coluna em telas muito pequenas */
+    #schedule-form .flex.items-center.gap-2 {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    #schedule-quantity,
+    #schedule-unit {
+        width: 100%;
+    }
+    
+    /* Botões do formulário em coluna */
+    #schedule-form .flex.justify-end.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    #schedule-form button {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+        min-height: 44px;
+    }
+    
+    /* Espaçamento do formulário mais compacto */
+    #schedule-form {
+        gap: 0.75rem;
+    }
+    
+    /* Custo estimado menor */
+    #schedule-estimated-cost {
+        font-size: 0.8rem;
+    }
+}
+
+/* Melhorias para o botão de fechar do modal de agendamento */
+@media (max-width: 480px) {
+    #schedule-modal .close-modal-btn {
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.5rem;
+    }
+    
+    #schedule-modal .close-modal-btn i {
+        font-size: 1rem;
+    }
+}
+
+/* Correção para campos com foco no agendamento */
+@media (max-width: 480px) {
+    #schedule-form input:focus,
+    #schedule-form select:focus,
+    #schedule-form textarea:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+}
+
+/* Estilo específico para o select múltiplo de insumos */
+@media (max-width: 768px) {
+    #schedule-supply-from-stock option {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    #schedule-supply-from-stock option:checked {
+        background-color: #3b82f6;
+        color: white;
+    }
+}
+
+@media (max-width: 480px) {
+    #schedule-supply-from-stock option {
+        padding: 0.4rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Estilos para desktop - novo layout de chips também */
+@media (min-width: 769px) {
+    #schedule-category-filters {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+        grid-template-columns: none !important;
+    }
+    
+    #schedule-category-filters button {
+        flex: 0 0 auto;
+        font-size: 0.875rem;
+        padding: 0.6rem 1rem;
+        white-space: nowrap;
+        border-radius: 1.25rem;
+        border: 1px solid #d1d5db;
+        background-color: #f9fafb;
+        color: #374151;
+        transition: all 0.2s;
+        cursor: pointer;
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    #schedule-category-filters button.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #2563eb;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    }
+    
+    #schedule-category-filters button:hover:not(.active) {
+        background-color: #f3f4f6;
+        border-color: #9ca3af;
+    }
+}
+/* Layout responsivo para dispositivos móveis */
+@media (max-width: 768px) {
+    /* Modal container - ESPAÇAMENTO REDUZIDO */
+    #supplies-modal .modal {
+        width: 95vw;
+        max-width: none;
+        margin: 0.5rem;
+        padding: 1rem;
+        max-height: 95vh;
+        border-radius: 1rem;
+    }
+    
+    /* Título do modal - MARGIN REDUZIDA */
+    #supplies-modal h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+        text-align: center;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    /* CORREÇÃO 1: Gap principal reduzido de 2rem para 1.5rem */
+    #supplies-modal .grid.md\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem; /* Reduzido de 2rem para 1.5rem */
+    }
+    
+    /* Seção do formulário - PADDING REDUZIDO */
+    #supplies-form {
+        order: 1;
+        background: #f8fafc;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* CORREÇÃO 2: Títulos das seções - margin-bottom reduzida para 0.75rem */
+    #supplies-modal h3 {
+        font-size: 1.125rem;
+        margin-bottom: 0.75rem; /* Reduzido de 1rem para 0.75rem */
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.25rem;
+    }
+    
+    /* Container dos botões de categoria - MARGIN REDUZIDA */
+    #supply-category-buttons {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.5rem;
+        margin: 0.5rem 0;
+    }
+    
+    /* Campos do formulário - ESPAÇAMENTO COMPACTO */
+    #supplies-form .space-y-4 > * + * {
+        margin-top: 0.75rem;
+    }
+    
+    /* CORREÇÃO 3: Seção de detalhes da compra - margens ajustadas para 0.75rem */
+    #supplies-form .bg-gray-100 {
+        background-color: #f1f5f9;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        margin-top: 0.75rem;    /* Ajustado conforme solicitado */
+        margin-bottom: 0.75rem; /* Ajustado conforme solicitado */
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Título da seção de detalhes - MARGIN REDUZIDA */
+    #supplies-form .bg-gray-100 p {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    /* Grid de detalhes - GAP REDUZIDO */
+    #supplies-form .grid.grid-cols-2 {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    
+    /* Seção da lista de insumos - PADDING REDUZIDO */
+    #supplies-modal .grid > div:last-child {
+        order: 2;
+        background: #f8fafc;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+        min-height: 300px;
+    }
+    
+    /* Lista de insumos - ALTURA REDUZIDA */
+    #supplies-list {
+        min-height: 200px;
+        max-height: 250px;
+        overflow-y: auto;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+    }
+    
+    /* Items da lista - PADDING REDUZIDO */
+    #supplies-list > div {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Labels - MARGIN REDUZIDA */
+    #supplies-form label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    
+    /* Botões do formulário - ESPAÇAMENTO OTIMIZADO */
+    #supplies-form .flex.justify-end {
+        margin-top: 0.75rem;
+        gap: 0.5rem;
+    }
+}

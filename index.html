@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <link rel="icon" type="image/png" href="assets/img/capa2.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroCultive - Gestão Agrícola Inteligente</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4a7c59">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AgroCultive">
+    <link rel="apple-touch-icon" href="assets/img/imgvertical.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/img/imgvertical.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/img/imgvertical.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="assets/img/imgvertical.png">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!--INLINE_SCRIPT_PLACEHOLDER-->
+    
+    <!-- Separate JavaScript -->
+    <!--INLINE_SCRIPT_PLACEHOLDER-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+<link rel="stylesheet" href="assets/css/index.inline.css">
+</head>
+
+<body class="antialiased text-gray-800">
+    <!-- Tela de Autenticação -->
+    <div id="auth-container"
+        class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+        <div class="max-w-md w-full">
+            <!-- Logo e Título -->
+            <div class="text-center mb-8">
+                <img src="assets/img/Capa2.png" alt="AgroCultive" class="w-20 h-20 mx-auto mb-4 object-contain">
+                <h3 class="text-xl font-bold text-green-900 mb-2">Gerenciamento Rural Completo</h3>
+                <h1 class="text-3xl font-bold text-green-900 mb-2">Facilitando Sua Vida no Campo</h1>
+                <p class="text-gray-600">Gestão Rural Completa</p>
+            </div>
+
+            <!-- Formulário de Login -->
+            <div id="login-form" class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Entrar na sua conta</h2>
+
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label for="login-email" class="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                        <input type="email" id="login-email" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="seu@email.com">
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="login-password" class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                        <input type="password" id="login-password" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="Sua senha">
+                    </div>
+
+                    <button type="submit" id="login-btn"
+                        class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium mb-4">
+                        <span class="login-btn-text">Entrar</span>
+                        <i class="fas fa-spinner fa-spin hidden login-btn-spinner"></i>
+                    </button>
+                </form>
+
+                <div class="text-center space-y-2">
+                    <button id="forgot-password-btn" class="text-green-600 hover:text-green-700 text-sm">
+                        Esqueceu a senha?
+                    </button>
+                    <div class="text-gray-600 text-sm">
+                        Não tem conta?
+                        <button id="show-register" class="text-green-600 hover:text-green-700 font-medium">
+                            Criar conta
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulário de Cadastro -->
+            <div id="register-form" class="bg-white rounded-xl shadow-lg p-8 hidden">
+                <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Criar nova conta</h2>
+
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label for="register-name" class="block text-sm font-medium text-gray-700 mb-2">Nome
+                            completo</label>
+                        <input type="text" id="register-name" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="Seu nome completo">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="register-email" class="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                        <input type="email" id="register-email" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="seu@email.com">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="register-password"
+                            class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                        <input type="password" id="register-password" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="Mínimo 6 caracteres" minlength="6">
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="register-password-confirm"
+                            class="block text-sm font-medium text-gray-700 mb-2">Confirmar senha</label>
+                        <input type="password" id="register-password-confirm" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="Confirme sua senha">
+                    </div>
+
+                    <button type="submit" id="register-btn"
+                        class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium mb-4">
+                        <span class="register-btn-text">Criar conta</span>
+                        <i class="fas fa-spinner fa-spin hidden register-btn-spinner"></i>
+                    </button>
+                </form>
+
+                <div class="text-center">
+                    <div class="text-gray-600 text-sm">
+                        Já tem conta?
+                        <button id="show-login" class="text-green-600 hover:text-green-700 font-medium">
+                            Fazer login
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulário de Recuperação de Senha -->
+            <div id="forgot-password-form" class="bg-white rounded-xl shadow-lg p-8 hidden">
+                <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Recuperar senha</h2>
+
+                <form id="forgot-password-form-element">
+                    <div class="mb-6">
+                        <label for="forgot-email" class="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                        <input type="email" id="forgot-email" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            placeholder="seu@email.com">
+                        <p class="text-sm text-gray-500 mt-2">Enviaremos um link para redefinir sua senha</p>
+                    </div>
+
+                    <button type="submit" id="forgot-btn"
+                        class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium mb-4">
+                        <span class="forgot-btn-text">Enviar link</span>
+                        <i class="fas fa-spinner fa-spin hidden forgot-btn-spinner"></i>
+                    </button>
+                </form>
+
+                <div class="text-center">
+                    <button id="back-to-login" class="text-green-600 hover:text-green-700 text-sm">
+                        ← Voltar ao login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aplicação Principal (existente) -->
+    <div id="app-container" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
+        <header class="text-center mb-8 flex flex-col items-center">
+            <img src="assets/img/Capa2.png" alt="AgroCultive Logo" class="max-h-56 object-contain mx-auto mb-2">
+            <h3 style="color: darkgreen; font-weight: bold; font-size: 1.25rem; margin-bottom: 0.5rem; margin-top: 0;">Gerenciamento Rural Completo</h3>
+            <h2 style="color: darkgreen; font-weight: bold;">Facilitando Sua Vida No Campo</h2> <br>
+            <div class="flex items-center gap-4">
+                <span id="user-display-name" class="text-sm text-gray-600"></span>
+                <button id="logout-btn"
+                    class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Sair
+                </button>
+            </div>
+        </header>
+
+    <!-- NOVO: Container Global de Notificações -->
+    <div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none">
+        <!-- Toasts serão inseridos aqui dinamicamente -->
+    </div>
+
+        <main class="max-w-7xl mx-auto">
+            <!-- Nova Barra de Ações Superior -->
+            <div class="action-bar bg-white p-4 rounded-xl shadow-md mb-6">
+                <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
+                    <div class="buttons-container">
+                        <button id="premium-btn" class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-3 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 font-semibold">
+                            <i class="fas fa-crown text-yellow-200"></i>
+                            <span>Pacote Premium</span>
+                            <i class="fas fa-sparkles text-yellow-200"></i>
+                        </button>
+                        <button id="schedule-btn"
+                            class="action-button bg-orange-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-orange-600 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-calendar-plus"></i> Agendar Aplicação
+                        </button>
+                        <button id="manage-animals-btn"
+                            class="action-button bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-yellow-700 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-paw"></i> Animais
+                        </button>
+                        <button id="calendar-btn"
+                            class="action-button bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-yellow-600 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-calendar-alt"></i> Calendário
+                        </button>
+                        <button id="lunar-calendar-btn"
+                            class="action-button bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-gray-800 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-moon"></i> Calendário Lunar
+                        </button>
+                        <button id="manage-supplies-btn"
+                            class="action-button bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-dolly"></i> Estoque
+                        </button>
+                        <button id="manage-employees-btn"
+                            class="action-button bg-purple-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-purple-600 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-users-cog"></i> Funcionários
+                        </button>
+                        <a href="clientes.html"
+                            class="action-button bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-cyan-600 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-users"></i> Clientes
+                        </a>
+                        <button id="cashbook-btn"
+                            class="action-button bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-book-medical"></i> Livro Caixa
+                        </button>
+                        <button id="add-planting-btn"
+                            class="action-button bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-green-700 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-plus-circle"></i> Novo Plantio
+                        </button>
+                        <button id="add-sale-btn"
+                            class="action-button bg-teal-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-teal-600 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-cash-register"></i> Vender Produção
+                        </button>
+                        <button id="manage-property-btn"
+                            class="action-button bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-emerald-700 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-home"></i> Propriedade
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Novo Layout do Dashboard -->
+            <!-- Seção Superior: Duas Colunas -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Coluna Esquerda: Previsão do Tempo -->
+                <div class="bg-white p-5 rounded-xl shadow-md">
+                    <h2 class="text-xl font-bold mb-4 text-gray-700">Previsão do Tempo</h2>
+                    <div id="weather-widget" class="compact-weather-card">
+                        <!-- Linha 1: Título com cidade e data -->
+                        <div class="weather-header">
+                            <h3 class="city-name">Carregando...</h3>
+                            <p class="current-date"></p>
+                        </div>
+                        
+                        <!-- Linha 2: Clima atual em duas colunas -->
+                        <div class="current-weather">
+                            <div class="weather-main">
+                                <div class="weather-icon"></div>
+                                <div class="temperature-info">
+                                    <span class="current-temp">--°</span>
+                                    <p class="weather-description">--</p>
+                                </div>
+                            </div>
+                            <div class="weather-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-wind"></i>
+                                    <span class="wind-speed">-- km/h</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-tint"></i>
+                                    <span class="humidity">--%</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-sun"></i>
+                                    <span class="sunrise">--:--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-moon"></i>
+                                    <span class="sunset">--:--</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Linha 3: Separador -->
+                        <div class="weather-separator"></div>
+                        
+                        <!-- Linha 4: Previsão de 5 dias -->
+                        <div class="forecast-5day">
+                            <div class="forecast-day">
+                                <span class="day-name">--</span>
+                                <div class="day-icon"></div>
+                                <div class="day-temps">
+                                    <span class="temp-max">--°</span>
+                                    <span class="temp-min">--°</span>
+                                </div>
+                            </div>
+                            <div class="forecast-day">
+                                <span class="day-name">--</span>
+                                <div class="day-icon"></div>
+                                <div class="day-temps">
+                                    <span class="temp-max">--°</span>
+                                    <span class="temp-min">--°</span>
+                                </div>
+                            </div>
+                            <div class="forecast-day">
+                                <span class="day-name">--</span>
+                                <div class="day-icon"></div>
+                                <div class="day-temps">
+                                    <span class="temp-max">--°</span>
+                                    <span class="temp-min">--°</span>
+                                </div>
+                            </div>
+                            <div class="forecast-day">
+                                <span class="day-name">--</span>
+                                <div class="day-icon"></div>
+                                <div class="day-temps">
+                                    <span class="temp-max">--°</span>
+                                    <span class="temp-min">--°</span>
+                                </div>
+                            </div>
+                            <div class="forecast-day">
+                                <span class="day-name">--</span>
+                                <div class="day-icon"></div>
+                                <div class="day-temps">
+                                    <span class="temp-max">--°</span>
+                                    <span class="temp-min">--°</span>
+                                </div>
+                            </div>
+                            <div class="forecast-day md:hidden">
+                                <span class="day-name">--</span>
+                                <div class="day-icon"></div>
+                                <div class="day-temps">
+                                    <span class="temp-max">--°</span>
+                                    <span class="temp-min">--°</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita: Tarefas da Propriedade -->
+                <div class="bg-white p-5 rounded-xl shadow-md">
+                    <h2 class="text-xl font-bold mb-4 text-gray-700">Tarefas da Propriedade</h2>
+                    <form id="task-form" class="mb-4 space-y-3">
+                        <input type="text" id="task-input" placeholder="Adicionar nova tarefa..."
+                            class="w-full px-3 py-2 border rounded-md" required>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label for="task-date" class="block text-xs text-gray-600 mb-1">Data (opcional)</label>
+                                <input type="date" id="task-date" 
+                                    class="w-full px-2 py-1 border rounded-md text-sm">
+                            </div>
+                            <div>
+                                <label for="task-time" class="block text-xs text-gray-600 mb-1">Horário (opcional)</label>
+                                <input type="time" id="task-time" 
+                                    class="w-full px-2 py-1 border rounded-md text-sm">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                            <i class="fas fa-plus"></i> Adicionar Tarefa
+                        </button>
+                    </form>
+                    <div id="task-list" class="space-y-2 max-h-[300px] overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- 1º Seção: Lembretes de Aplicações (Largura Total) -->
+            <div class="bg-white p-5 rounded-xl shadow-md mb-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-700">Lembretes de Aplicações</h2>
+                <div id="reminders-list" class="space-y-3">
+                    <div class="text-gray-500">Nenhuma aplicação agendada.</div>
+                </div>
+            </div>
+
+            <!-- 2º Seção: Dica do Dia (Largura Total) -->
+            <div class="bg-white p-5 rounded-xl shadow-md mb-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-700">Dica do Dia</h2>
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-lightbulb fa-2x text-yellow-500"></i>
+                    <div class="flex-1">
+                        <p id="daily-tip-text" class="text-gray-700 leading-relaxed">Carregando dica do dia...</p>
+                        <p class="text-sm text-gray-500 mt-1">Dica atualizada diariamente</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3º Seção: Status da Propriedade (Largura Total) -->
+            <div class="bg-white p-5 rounded-xl shadow-md mb-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-700">Status da Propriedade</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div id="status-growing"
+                        class="status-card bg-gray-50 p-4 rounded-lg flex items-center gap-3 cursor-pointer transition-transform hover:scale-105">
+                        <i class="fas fa-seedling fa-2x text-blue-500 flex-shrink-0"></i>
+                        <div class="min-w-0">
+                            <p class="text-gray-500 text-sm truncate">Em Crescimento</p>
+                            <p id="growing-count" class="text-xl font-bold">0</p>
+                        </div>
+                    </div>
+                    <div id="status-harvested"
+                        class="status-card bg-gray-50 p-4 rounded-lg flex items-center gap-3 cursor-pointer transition-transform hover:scale-105">
+                        <i class="fas fa-check-circle fa-2x text-green-500 flex-shrink-0"></i>
+                        <div class="min-w-0">
+                            <p class="text-gray-500 text-sm truncate">Colhido</p>
+                            <p id="harvested-count" class="text-xl font-bold">0</p>
+                        </div>
+                    </div>
+                    <div id="status-delayed"
+                        class="status-card bg-gray-50 p-4 rounded-lg flex items-center gap-3 cursor-pointer transition-transform hover:scale-105">
+                        <i class="fas fa-exclamation-triangle fa-2x text-red-500 flex-shrink-0"></i>
+                        <div class="min-w-0">
+                            <p class="text-gray-500 text-sm truncate">Atrasado</p>
+                            <p id="delayed-count" class="text-xl font-bold">0</p>
+                        </div>
+                    </div>
+                    <div id="status-employees"
+                        class="status-card bg-gray-50 p-4 rounded-lg flex items-center gap-3 cursor-pointer transition-transform hover:scale-105">
+                        <i class="fas fa-users fa-2x text-purple-500 flex-shrink-0"></i>
+                        <div class="min-w-0">
+                            <p class="text-gray-500 text-sm truncate">Funcionários Ativos</p>
+                            <p id="employee-count" class="text-xl font-bold">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="planting-list"></div>
+            <div id="loading-indicator" class="text-center py-10"><i
+                    class="fas fa-spinner fa-spin fa-3x text-green-500"></i>
+                <p class="mt-4 text-gray-600">A carregar dados...</p>
+            </div>
+            <div id="error-state" class="hidden text-center py-16 px-6 bg-red-100 text-red-700 rounded-lg shadow-md"><i
+                    class="fas fa-exclamation-triangle fa-4x"></i>
+                <h3 class="text-2xl font-semibold mt-4">Ocorreu um erro</h3>
+                <p class="mt-2">Não foi possível carregar os dados. Tente recarregar a página.</p>
+            </div>
+            <div id="empty-state" class="hidden text-center py-24 px-6 bg-white rounded-lg shadow-md">
+                <p class="text-gray-700 text-2xl font-bold">Clique em "Novo Plantio" para começar.</p>
+            </div>
+            <div id="no-results" class="hidden text-center py-16 px-6 bg-white rounded-lg shadow-md">
+                <i class="fas fa-search-minus fa-4x text-gray-400"></i>
+                <p class="text-gray-600 mt-6 text-lg">Nenhum resultado encontrado para a sua pesquisa.</p>
+            </div>
+
+            <!-- Painel Financeiro (Nova Posição - Última Seção) -->
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-md mb-6 mt-8">
+                <h2 class="text-lg md:text-xl font-bold mb-4 md:mb-6 text-gray-700">Painel Financeiro</h2>
+                
+                <!-- Grid responsivo -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
+                    
+                    <!-- Coluna da Esquerda: Gráfico Donut + Cartões -->
+                    <div class="space-y-4 md:space-y-6">
+                        <!-- Gráfico de Donut -->
+                        <div class="bg-white p-3 md:p-4 rounded-lg shadow-sm border">
+                            <h4 class="text-base md:text-lg font-semibold text-gray-700 mb-3 md:mb-4">Faturamento Mensal</h4>
+                            <div class="relative h-48 md:h-64">
+                                <canvas id="donut-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Cartões de Resumo -->
+                        <div class="space-y-3">
+                            <!-- Cartão 1: Lançamentos Futuros -->
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-3 md:p-4 rounded-lg">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                    <div class="bg-blue-500 p-2 md:p-3 rounded-full w-fit">
+                                        <i class="fas fa-calendar-plus text-white text-base md:text-lg"></i>
+                                    </div>
+                                    <div class="flex-grow min-w-0">
+                                        <h5 class="font-semibold text-gray-700 text-sm md:text-base">Lançamentos Futuros e Recorrentes</h5>
+                                        <p class="text-xs md:text-sm text-gray-500">Transações programadas</p>
+                                    </div>
+                                    <div class="text-left sm:text-right">
+                                        <p id="future-transactions" class="text-lg md:text-xl font-bold text-blue-600">R$ 0,00</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Cartão 2: Faturamento em Aberto -->
+                            <div class="bg-orange-50 border-l-4 border-orange-500 p-3 md:p-4 rounded-lg">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                    <div class="bg-orange-500 p-2 md:p-3 rounded-full w-fit">
+                                        <i class="fas fa-exclamation-triangle text-white text-base md:text-lg"></i>
+                                    </div>
+                                    <div class="flex-grow min-w-0">
+                                        <h5 class="font-semibold text-gray-700 text-sm md:text-base">Faturamento em Aberto e Vencido</h5>
+                                        <p class="text-xs md:text-sm text-gray-500">Total de despesas</p>
+                                    </div>
+                                    <div class="text-left sm:text-right">
+                                        <p id="open-overdue" class="text-lg md:text-xl font-bold text-orange-600">R$ 0,00</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Cartão 3: Faturamento Pago -->
+                            <div class="bg-green-50 border-l-4 border-green-600 p-3 md:p-4 rounded-lg">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                    <div class="bg-green-600 p-2 md:p-3 rounded-full w-fit">
+                                        <i class="fas fa-check-circle text-white text-base md:text-lg"></i>
+                                    </div>
+                                    <div class="flex-grow min-w-0">
+                                        <h5 class="font-semibold text-gray-700 text-sm md:text-base">Faturamento Pago e Consolidado</h5>
+                                        <p class="text-xs md:text-sm text-gray-500">Total de receitas</p>
+                                    </div>
+                                    <div class="text-left sm:text-right">
+                                        <p id="paid-consolidated" class="text-lg md:text-xl font-bold text-green-600">R$ 0,00</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Coluna da Direita: Gráfico de Linha -->
+                    <div class="bg-white p-3 md:p-4 rounded-lg shadow-sm border">
+                        <h4 class="text-base md:text-lg font-semibold text-gray-700 mb-3 md:mb-4">Últimos Faturamentos - Anual</h4>
+                        <div class="relative h-64 md:h-80">
+                            <canvas id="line-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </main>
+
+        <footer class="text-center py-6 mt-12 border-t border-gray-200">
+            <p class="text-sm text-gray-500">Copyright &copy; 2025 AgroCultive Technology. Todos os direitos reservados.
+            </p>
+        </footer>
+    </div>
+
+    <div id="lunar-calendar-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-6xl mx-auto p-6 relative">
+            <div class="flex justify-between items-center mb-4">
+                <button id="lunar-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200"><i
+                        class="fas fa-chevron-left"></i></button>
+                <h2 id="lunar-calendar-title" class="text-2xl font-bold text-center"></h2>
+                <button id="lunar-next-month-btn" class="p-2 rounded-full hover:bg-gray-200"><i
+                        class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <div id="lunar-calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
+                </div>
+                <div class="lg:col-span-1 bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-lg mb-4 text-gray-700 border-b pb-2">Legenda Agrícola Lunar</h3>
+                    <div id="lunar-legend" class="space-y-3"></div>
+                </div>
+            </div>
+            <button class="close-lunar-modal-btn absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i
+                    class="fas fa-times fa-lg"></i></button>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-2xl shadow-2xl w-11/12 max-w-md mx-auto overflow-hidden">
+            <!-- Header com ícone -->
+            <div class="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 flex items-center gap-3">
+                <div class="bg-white bg-opacity-20 rounded-full p-2">
+                    <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                </div>
+                <h3 id="confirm-title" class="text-xl font-bold text-white"></h3>
+            </div>
+            
+            <!-- Conteúdo -->
+            <div class="px-6 py-6">
+                <div class="flex items-start gap-4 mb-6">
+                    <div class="bg-red-100 rounded-full p-3 flex-shrink-0">
+                        <i class="fas fa-trash-alt text-red-600 text-lg"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <p id="confirm-message" class="text-gray-700 text-base leading-relaxed"></p>
+                        <p class="text-sm text-gray-500 mt-2">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Esta ação não pode ser desfeita.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Botões -->
+                <div class="flex gap-3 justify-end">
+                    <button id="confirm-cancel-btn"
+                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center gap-2 border border-gray-200">
+                        <i class="fas fa-times text-sm"></i>
+                        Cancelar
+                    </button>
+                    <button id="confirm-ok-btn"
+                        class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl">
+                        <i class="fas fa-trash-alt text-sm"></i>
+                        Confirmar Exclusão
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-observation-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-xl w-11/12 max-w-md mx-auto p-6">
+            <h2 class="text-2xl font-bold mb-6 text-center">Editar Observação</h2>
+            <form id="edit-observation-form">
+                <input type="hidden" id="edit-observation-id">
+                <textarea id="edit-observation-text" rows="4" class="w-full p-2 border rounded-md" required></textarea>
+                <div class="flex justify-end gap-4 mt-4">
+                    <button type="button" id="cancel-edit-observation"
+                        class="bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-400">Cancelar</button>
+                    <button type="submit"
+                        class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="calendar-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-4xl mx-auto p-6">
+            <div class="flex justify-between items-center mb-4">
+                <button id="prev-month-btn" class="p-2 rounded-full hover:bg-gray-200"><i
+                        class="fas fa-chevron-left"></i></button>
+                <h2 id="calendar-title" class="text-2xl font-bold text-center"></h2>
+                <button id="next-month-btn" class="p-2 rounded-full hover:bg-gray-200"><i
+                        class="fas fa-chevron-right"></i></button>
+            </div>
+            <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
+            <div class="mt-4 flex justify-center gap-2">
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-yellow-500 rounded-full mr-1"></div>
+                    <span class="text-xs">Aplicação Agendada</span>
+                </div>
+            </div>
+            <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i
+                    class="fas fa-times fa-lg"></i></button>
+        </div>
+    </div>
+
+    <div id="schedule-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-lg mx-auto p-6">
+            <h2 id="schedule-modal-title" class="text-2xl font-bold mb-6 text-center">Agendar Aplicação</h2>
+            <form id="schedule-form" class="space-y-4">
+                <input type="hidden" id="schedule-id">
+
+                <!-- Seleção do tipo de aplicação -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Aplicação</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" id="schedule-type-planting"
+                            class="schedule-type-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-md border border-blue-300 text-sm font-medium active">
+                            Plantio
+                        </button>
+                        <button type="button" id="schedule-type-animal"
+                            class="schedule-type-btn bg-gray-100 text-gray-800 py-2 px-4 rounded-md border border-gray-300 text-sm font-medium">
+                            Animais
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seleção de Plantio -->
+                <div id="planting-selection" class="schedule-selection-container">
+                    <label for="schedule-planting" class="block text-sm font-medium text-gray-700">Plantio</label>
+                    <select id="schedule-planting" class="mt-1 block w-full px-3 py-2 border rounded-md">
+                        <option value="">Selecione um plantio</option>
+                    </select>
+                </div>
+
+                <!-- Seleção de Animais -->
+                <div id="animal-selection" class="schedule-selection-container hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Animal</label>
+                    <select id="schedule-animal-type" class="mt-1 block w-full px-3 py-2 border rounded-md mb-3">
+                        <option value="">Selecione o tipo de animal</option>
+                        <option value="cattle">Bovinos</option>
+                        <option value="goats">Caprinos</option>
+                        <option value="sheep">Ovinos</option>
+                        <option value="chickens">Aves</option>
+                        <option value="pigs">Suínos</option>
+                        <option value="fish">Peixes</option>
+                        <option value="equine">Equinos</option>
+                        <option value="others">Outros</option>
+                    </select>
+
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Selecionar Animais</label>
+                    <div id="schedule-animal-list" class="max-h-32 overflow-y-auto border rounded-md p-2 bg-gray-50">
+                        <p class="text-gray-500 text-sm">Selecione um tipo de animal primeiro</p>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-600">
+                        <span id="schedule-selected-animals-count">0</span> animal(is) selecionado(s)
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Filtrar por Categoria</label>
+                    <div id="schedule-category-filters" class="mt-1 grid grid-cols-3 gap-2"></div>
+                </div>
+                <div>
+                    <label for="schedule-supply-from-stock" class="block text-sm font-medium text-gray-700">Insumos do
+                        Estoque (selecione um ou mais)</label>
+                    <select id="schedule-supply-from-stock" multiple size="5"
+                        class="mt-1 block w-full px-3 py-2 border rounded-md overflow-y-auto"></select>
+                </div>
+                <div>
+                    <label for="schedule-dose" class="block text-sm font-medium text-gray-700">Dose/Observação da
+                        Mistura</label>
+                    <input type="text" id="schedule-dose" placeholder="Ex: 10ml/L Produto A + 5g/L Produto B"
+                        class="mt-1 block w-full px-3 py-2 border rounded-md">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Quantidade a Usar</label>
+                    <div class="flex items-center gap-2 mt-1">
+                        <input type="text" id="schedule-quantity" placeholder="Ex: 100" 
+                            class="calc-input block w-2/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        <select id="schedule-unit" 
+                            class="block w-1/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            <option value="kg">kg (Quilograma)</option>
+                            <option value="g">g (Grama)</option>
+                            <option value="t">t (Tonelada)</option>
+                            <option value="@">@ (Arroba - 15kg)</option>
+                            <option value="sc">sc (Saca - 60kg)</option>
+                            <option value="L">L (Litro)</option>
+                            <option value="mL">mL (Mililitro)</option>
+                            <option value="un">un (Unidade)</option>
+                        </select>
+                    </div>
+                    <div class="mt-2 text-sm text-green-600 font-semibold">
+                        <span>Custo Estimado: </span>
+                        <span id="schedule-estimated-cost">R$ 0,00</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="schedule-date" class="block text-sm font-medium text-gray-700">Data da Aplicação</label>
+                    <input type="date" id="schedule-date" required
+                        class="mt-1 block w-full px-3 py-2 border rounded-md">
+                </div>
+                <div>
+                    <label for="schedule-time" class="block text-sm font-medium text-gray-700">Horário da Aplicação</label>
+                    <input type="time" id="schedule-time" value="08:00" required
+                        class="mt-1 block w-full px-3 py-2 border rounded-md">
+                </div>
+                <div>
+                    <label for="schedule-notes" class="block text-sm font-medium text-gray-700">Observações
+                        Gerais</label>
+                    <textarea id="schedule-notes" rows="3"
+                        class="mt-1 block w-full px-3 py-2 border rounded-md"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button"
+                        class="cancel-schedule-btn bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button>
+                    <button type="submit"
+                        class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="cashbook-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-4xl mx-auto p-6">
+            <h2 class="text-2xl font-bold mb-6 text-center">Livro Caixa Rural</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-semibold mb-4 border-b pb-2">Nova Transação Manual</h3>
+                    <form id="transaction-form" class="space-y-4">
+                        <div><label for="transaction-description"
+                                class="block text-sm font-medium text-gray-700">Descrição</label><input type="text"
+                                id="transaction-description" required
+                                class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        <div><label for="transaction-amount" class="block text-sm font-medium text-gray-700">Valor
+                                (R$)</label><input type="text" id="transaction-amount" required
+                                class="calc-input mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        <div><label for="transaction-type"
+                                class="block text-sm font-medium text-gray-700">Tipo</label><select
+                                id="transaction-type" class="mt-1 block w-full px-3 py-2 border rounded-md">
+                                <option value="receita">Receita</option>
+                                <option value="despesa">Despesa</option>
+                            </select></div>
+                        <div><label for="transaction-category"
+                                class="block text-sm font-medium text-gray-700">Categoria</label><input type="text"
+                                id="transaction-category" placeholder="Ex: Venda de Soja, Combustível" required
+                                class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                        <div><label for="transaction-date"
+                                class="block text-sm font-medium text-gray-700">Data</label><input type="date"
+                                id="transaction-date" required class="mt-1 block w-full px-3 py-2 border rounded-md">
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700">Adicionar
+                            Transação</button>
+                    </form>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="text-lg font-semibold">Extrato Financeiro</h3>
+                        <div class="flex items-center gap-4">
+                            <div class="month-selector">
+                                <label for="month-filter" class="text-sm text-gray-600 mr-2">Mês:</label>
+                                <select id="month-filter"
+                                    class="bg-transparent border-none text-sm focus:outline-none focus:ring-0">
+                                    <option value="all">Todos</option>
+                                    <option value="1">Janeiro</option>
+                                    <option value="2">Fevereiro</option>
+                                    <option value="3">Março</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Maio</option>
+                                    <option value="6">Junho</option>
+                                    <option value="7">Julho</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Setembro</option>
+                                    <option value="10">Outubro</option>
+                                    <option value="11">Novembro</option>
+                                    <option value="12">Dezembro</option>
+                                </select>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">Saldo</p>
+                                <p id="cashbook-balance" class="text-xl font-bold text-gray-800">R$ 0,00</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="transaction-list" class="space-y-2 max-h-96 overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+            <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i
+                    class="fas fa-times fa-lg"></i></button>
+        </div>
+    </div>
+
+    <div id="supplies-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-3xl mx-auto p-6">
+            <h2 class="text-2xl font-bold mb-6 text-center">O Meu Estoque de Insumos</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 id="supplies-form-title" class="text-lg font-semibold mb-4 border-b pb-2">Adicionar Nova Compra
+                    </h3>
+                    <form id="supplies-form" class="space-y-4">
+                        <input type="hidden" id="supply-id">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Categoria do Insumo</label>
+                            <div id="supply-category-buttons" class="mt-1 grid grid-cols-3 gap-2"></div>
+                            <div id="custom-category-container" class="hidden mt-2">
+                                <input type="text" id="custom-category-input" placeholder="Digite a sua categoria"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <input type="hidden" id="supply-category" required>
+                        </div>
+                        <div><label for="supply-name" class="block text-sm font-medium text-gray-700">Nome do
+                                Insumo/Cultura</label><input type="text" id="supply-name" required
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div id="supply-variety-container" class="hidden">
+                            <label for="supply-variety"
+                                class="block text-sm font-medium text-gray-700">Variedade</label>
+                            <input type="text" id="supply-variety"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="bg-gray-100 p-3 rounded-lg space-y-3">
+                            <p class="text-sm font-semibold text-center text-gray-600">Detalhes da Compra</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label for="supply-units-count" class="block text-xs font-medium text-gray-700">Nº
+                                        de Embalagens</label><input type="text" id="supply-units-count"
+                                        class="calc-input mt-1 block w-full px-3 py-2 border-gray-300 rounded-md shadow-sm text-sm">
+                                </div>
+                                <div><label for="supply-quantity-per-unit"
+                                        class="block text-xs font-medium text-gray-700">Qtd. por Embalagem</label><input
+                                        type="text" id="supply-quantity-per-unit"
+                                        class="calc-input mt-1 block w-full px-3 py-2 border-gray-300 rounded-md shadow-sm text-sm">
+                                </div>
+                            </div>
+                            <div><label for="supply-cost-per-unit" class="block text-xs font-medium text-gray-700">Custo
+                                    por Embalagem (R$)</label><input type="text" id="supply-cost-per-unit"
+                                    class="calc-input mt-1 block w-full px-3 py-2 border-gray-300 rounded-md shadow-sm text-sm">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label for="supply-quantity" class="block text-sm font-medium text-gray-700">Qtd.
+                                    Total</label><input type="text" id="supply-quantity" readonly
+                                    class="mt-1 block w-full px-3 py-2 border-gray-300 rounded-md shadow-sm bg-gray-200">
+                            </div>
+                            <div><label for="supply-unit"
+                                    class="block text-sm font-medium text-gray-700">Unidade</label>
+                                <select id="supply-unit" required
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="kg">kg (Quilograma)</option>
+                                    <option value="g">g (Grama)</option>
+                                    <option value="t">t (Tonelada)</option>
+                                    <option value="@">@ (Arroba - 15kg)</option>
+                                    <option value="sc">sc (Saca - 60kg)</option>
+                                    <option value="L">L (Litro)</option>
+                                    <option value="mL">mL (Mililitro)</option>
+                                    <option value="un">un (Unidade)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div><label for="supply-cost" class="block text-sm font-medium text-gray-700">Custo Total
+                                (R$)</label><input type="text" id="supply-cost" readonly
+                                class="mt-1 block w-full px-3 py-2 border-gray-300 rounded-md shadow-sm bg-gray-200">
+                        </div>
+                        <div><label for="supply-date" class="block text-sm font-medium text-gray-700">Data da
+                                Compra</label><input type="date" id="supply-date" required
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="flex justify-end gap-2 pt-4">
+                            <button type="button" id="cancel-supply-edit-btn"
+                                class="hidden bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar
+                                Edição</button>
+                            <button type="submit"
+                                class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Guardar
+                                Insumo</button>
+                        </div>
+                    </form>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 border-b pb-2">Insumos em Estoque</h3>
+                    <div id="supplies-list" class="space-y-3 max-h-96 overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+            <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i
+                    class="fas fa-times fa-lg"></i></button>
+        </div>
+    </div>
+
+    <div id="add-animal-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-lg mx-auto p-6">
+            <h2 class="text-2xl font-bold mb-6 text-center">Registrar Compra de Animal</h2>
+            <form id="add-animal-form" class="space-y-4">
+                <div>
+                    <label for="add-animal-type" class="block text-sm font-medium text-gray-700">Tipo de Animal</label>
+                    <select id="add-animal-type" required class="mt-1 block w-full px-3 py-2 border rounded-md">
+                        <option value="">Selecione o tipo</option>
+                        <option value="cattle">Bovino</option>
+                        <option value="chickens">Ave</option>
+                        <option value="pigs">Suíno</option>
+                        <option value="goats">Caprino</option>
+                        <option value="sheep">Ovino</option>
+                        <option value="fish">Peixe</option>
+                        <option value="equine">Equino</option>
+                        <option value="others">Outro</option>
+                    </select>
+                </div>
+                <div id="add-animal-subtype-container" class="hidden">
+                    <label for="add-animal-subtype" class="block text-sm font-medium text-gray-700">Fase /
+                        Categoria</label>
+                    <select id="add-animal-subtype" class="mt-1 block w-full px-3 py-2 border rounded-md"></select>
+                </div>
+                <div><label for="add-animal-name" class="block text-sm font-medium text-gray-700">Lote /
+                        Identificação</label><input type="text" id="add-animal-name" required
+                        placeholder="Ex: Lote 2025, Brinco 123" class="mt-1 block w-full px-3 py-2 border rounded-md">
+                </div>
+                <div><label for="add-animal-breed" class="block text-sm font-medium text-gray-700">Raça /
+                        Linhagem</label><input type="text" id="add-animal-breed"
+                        class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                <div><label for="add-animal-quantity"
+                        class="block text-sm font-medium text-gray-700">Quantidade</label><input type="number"
+                        id="add-animal-quantity" required class="mt-1 block w-full px-3 py-2 border rounded-md"
+                        value="1"></div>
+                <div><label for="add-animal-cost" class="block text-sm font-medium text-gray-700">Custo Total da Compra
+                        (R$)</label><input type="text" id="add-animal-cost" required
+                        class="calc-input mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                <div><label for="add-animal-date" class="block text-sm font-medium text-gray-700">Data da
+                        Compra</label><input type="date" id="add-animal-date" required
+                        class="mt-1 block w-full px-3 py-2 border rounded-md"></div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" id="cancel-add-animal-btn"
+                        class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button>
+                    <button type="submit"
+                        class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700">Registrar
+                        Compra</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="planting-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-2xl mx-auto p-6 relative">
+            <h2 id="planting-modal-title" class="text-2xl font-bold mb-4 text-center"></h2>
+            <input type="hidden" id="planting-id">
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                    <button id="tab-details"
+                        class="tab-button whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm">Dados do
+                        Plantio</button>
+                    <button id="tab-management"
+                        class="tab-button whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm">Diário de
+                        Campo</button>
+                </nav>
+            </div>
+            <div id="details-content">
+                <form id="planting-form" class="space-y-4">
+                    <div id="new-planting-fields">
+                        <div>
+                            <label for="seed-select" class="block text-sm font-medium text-gray-700">Semente / Muda (do
+                                Estoque)</label>
+                            <select id="seed-select" required
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                                <option value="">Primeiro, adicione sementes/mudas ao estoque</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="seed-quantity-used" class="block text-sm font-medium text-gray-700">Quantidade
+                                Usada</label>
+                            <div class="flex items-center">
+                                <input type="text" id="seed-quantity-used" required
+                                    class="calc-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                                <span id="seed-quantity-unit"
+                                    class="inline-flex items-center px-3 mt-1 text-sm text-gray-500 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 h-10">--</span>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="seed-unit" class="block text-sm font-medium text-gray-700 mb-2">Unidade</label>
+                            <select id="seed-unit" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="kg">kg (Quilograma)</option>
+                                <option value="g">g (Grama)</option>
+                                <option value="t">t (Tonelada)</option>
+                                <option value="@">@ (Arroba - 15kg)</option>
+                                <option value="sc">sc (Saca - 60kg)</option>
+                                <option value="L">L (Litro)</option>
+                                <option value="mL">mL (Mililitro)</option>
+                                <option value="un">un (Unidade)</option>
+                            </select>
+                        </div>
+                        <div id="calculated-initial-cost-display" class="bg-green-50 p-3 rounded-md text-center">
+                            <p class="text-sm text-gray-600">Custo Inicial Calculado</p>
+                            <p class="text-lg font-bold text-green-700">R$ 0,00</p>
+                        </div>
+                    </div>
+                    <div id="edit-planting-fields" class="hidden">
+                        <div><label class="block text-sm font-medium text-gray-700">Nome da Cultura</label><input
+                                type="text" id="crop-name-display" readonly
+                                class="mt-1 block w-full px-3 py-2 border-gray-300 rounded-md bg-gray-100"></div>
+                        <div><label class="block text-sm font-medium text-gray-700">Variedade</label><input type="text"
+                                id="variety-display" readonly
+                                class="mt-1 block w-full px-3 py-2 border-gray-300 rounded-md bg-gray-100"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label for="planting-date" class="block text-sm font-medium text-gray-700">Data de
+                                Plantio</label><input type="date" id="planting-date" required
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <div><label for="harvest-date" class="block text-sm font-medium text-gray-700">Colheita
+                                Prevista</label><input type="date" id="harvest-date"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <div class="md:col-span-2"><label for="area"
+                                class="block text-sm font-medium text-gray-700">Área Plantada</label><input type="text"
+                                id="area" placeholder="Ex: 1 hectare, 10m²"
+                                class="calc-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Produção Final</label>
+                            <div class="flex items-center gap-2 mt-1">
+                                <input type="text" id="final-yield-quantity" placeholder="Ex: 200" 
+                                    class="calc-input block w-2/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                                <select id="final-yield-unit" 
+                                    class="block w-1/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                                    <option value="kg">kg</option>
+                                    <option value="g">g</option>
+                                    <option value="t">t</option>
+                                    <option value="@">@</option>
+                                    <option value="sc">sc</option>
+                                    <option value="un">un</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-end gap-3"><button type="button"
+                            class="cancel-btn bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition">Cancelar</button><button
+                            type="submit" id="save-planting-btn"
+                            class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition">Guardar
+                            Plantio</button></div>
+                </form>
+            </div>
+            <div id="management-content" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium">Aplicações e Observações</h3>
+                </div>
+                <div class="space-y-4">
+                    <div id="log-list" class="space-y-3 max-h-48 overflow-y-auto pr-2 border rounded-md p-2 bg-gray-50">
+                    </div>
+                    
+                    <!-- Adicionar contêiner de galeria de imagens -->
+                    <div class="bg-white border rounded-lg p-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                            <i class="fas fa-images text-blue-500"></i>
+                            Galeria de Imagens do Diário
+                        </h4>
+                        <div id="gallery-placeholder" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 min-h-[60px]">
+                            <p class="text-gray-500 text-sm col-span-full text-center py-4">Nenhuma imagem adicionada</p>
+                        </div>
+                    </div>
+                    
+                    <button id="add-management-btn"
+                        class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 text-sm"><i
+                            class="fas fa-plus"></i> Adicionar Aplicação de Insumo</button>
+                    <form id="log-form" class="flex gap-2">
+                        <input type="text" id="log-entry-text" placeholder="Adicionar uma observação..."
+                            class="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <input type="file" id="log-images" multiple accept=".jpg,.jpeg,.png" class="hidden">
+                        <button type="button" onclick="document.getElementById('log-images').click()"
+                            class="bg-gray-500 text-white font-semibold py-2 px-3 rounded-lg hover:bg-gray-600 flex items-center gap-1">
+                            <i class="fas fa-camera"></i> 📷
+                        </button>
+                        <button type="submit"
+                            class="bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-700">Registrar</button>
+                    </form>
+                </div>
+                <div class="mt-8 flex justify-end"><button type="button"
+                        class="cancel-btn bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition">Fechar</button>
+                </div>
+            </div>
+            <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i
+                    class="fas fa-times fa-lg"></i></button>
+        </div>
+    </div>
+
+    <div id="management-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-md mx-auto p-6">
+            <h2 id="management-modal-title" class="text-2xl font-bold mb-6 text-center"></h2>
+            <form id="management-form" class="space-y-4">
+                <input type="hidden" id="management-id">
+                <div><label for="supply-select" class="block text-sm font-medium text-gray-700">Insumo
+                        Utilizado</label><select id="supply-select" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
+                </div>
+                <div>
+                    <label for="quantity-used" class="block text-sm font-medium text-gray-700">Quantidade Usada</label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="quantity-used" required
+                            class="calc-input mt-1 block w-2/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <select id="quantity-used-unit-select" required
+                            class="mt-1 block w-1/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="kg">kg (Quilograma)</option>
+                            <option value="g">g (Grama)</option>
+                            <option value="t">t (Tonelada)</option>
+                            <option value="@">@ (Arroba - 15kg)</option>
+                            <option value="sc">sc (Saca - 60kg)</option>
+                            <option value="L">L (Litro)</option>
+                            <option value="mL">mL (Mililitro)</option>
+                            <option value="un">un (Unidade)</option>
+                        </select>
+                    </div>
+                </div>
+                <div><label for="application-date" class="block text-sm font-medium text-gray-700">Data da
+                        Aplicação</label><input type="date" id="application-date" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="bg-gray-100 p-3 rounded-md text-center">
+                    <p class="text-sm text-gray-600">Custo Calculado da Aplicação</p>
+                    <p id="calculated-cost" class="text-lg font-bold text-green-600">R$ 0,00</p>
+                </div>
+                <div class="mt-8 flex justify-end gap-3"><button type="button" id="cancel-management-btn"
+                        class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button><button
+                        type="submit"
+                        class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Guardar
+                        Aplicação</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="employee-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-5xl mx-auto p-6">
+            <h2 class="text-2xl font-bold mb-6 text-center">Gestor de Funcionários</h2>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-8">
+                <div class="md:col-span-2">
+                    <h3 id="employee-form-title" class="text-lg font-semibold mb-4 border-b pb-2">Novo Funcionário</h3>
+                    <form id="employee-form" class="space-y-3">
+                        <input type="hidden" id="employee-id">
+                        <div><label for="employee-name" class="block text-sm font-medium">Nome Completo</label><input
+                                type="text" id="employee-name" required class="mt-1 w-full p-2 border rounded-md"></div>
+                        <div><label for="employee-role" class="block text-sm font-medium">Função</label><input
+                                type="text" id="employee-role" placeholder="Ex: Tratorista" required
+                                class="mt-1 w-full p-2 border rounded-md"></div>
+                        <div><label for="employee-contract-type" class="block text-sm font-medium">Tipo de
+                                Contrato</label><select id="employee-contract-type"
+                                class="mt-1 w-full p-2 border rounded-md">
+                                <option value="registrado">Registrado (CLT)</option>
+                                <option value="temporario">Temporário</option>
+                                <option value="diarista">Diarista</option>
+                            </select></div>
+                        <div><label for="employee-salary" class="block text-sm font-medium">Salário Base
+                                (R$)</label><input type="text" id="employee-salary"
+                                class="calc-input mt-1 w-full p-2 border rounded-md"></div>
+                        <div><label for="employee-hire-date" class="block text-sm font-medium">Data de
+                                Contratação</label><input type="date" id="employee-hire-date" required
+                                class="mt-1 w-full p-2 border rounded-md"></div>
+                        <div><label for="employee-contact" class="block text-sm font-medium">Contacto</label><input
+                                type="text" id="employee-contact" placeholder="Telefone ou Email"
+                                class="mt-1 w-full p-2 border rounded-md"></div>
+                        <div><label for="employee-observations" class="block text-sm font-medium">Observações</label><textarea
+                                id="employee-observations" placeholder="Notas adicionais sobre o funcionário..."
+                                rows="3" class="mt-1 w-full p-2 border rounded-md resize-vertical"></textarea></div>
+                        <div><label for="employee-status" class="block text-sm font-medium">Status</label><select
+                                id="employee-status" class="mt-1 w-full p-2 border rounded-md">
+                                <option value="ativo">Ativo</option>
+                                <option value="inativo">Inativo</option>
+                            </select></div>
+                        <div class="flex justify-end gap-2 pt-3">
+                            <button type="button" id="cancel-employee-edit-btn"
+                                class="hidden bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button>
+                            <button type="submit"
+                                class="w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="md:col-span-3">
+                    <h3 class="text-lg font-semibold mb-4 border-b pb-2">Equipa</h3>
+                    <div id="employee-list" class="space-y-3 max-h-[65vh] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+            <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i
+                    class="fas fa-times fa-lg"></i></button>
+        </div>
+    </div>
+
+    <div id="employee-financial-modal" class="modal-backdrop">
+    </div>
+
+    <div id="animal-dashboard-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-6xl mx-auto p-6">
+            <h2 class="text-2xl font-bold mb-4 text-center">Gestor de Animais</h2>
+            <div id="animal-type-selector" class="flex justify-center flex-wrap gap-4 mb-4 border-b pb-4">
+                <button data-type="cattle"
+                    class="animal-type-btn text-lg bg-gray-100 text-gray-800 py-3 px-6 rounded-lg border-2 border-gray-300 flex items-center gap-3 transition-all duration-200"><i
+                        class="fas fa-cow fa-fw text-yellow-800"></i> Bovinos</button>
+                <button data-type="goats"
+                    class="animal-type-btn text-lg bg-gray-100 text-gray-800 py-3 px-6 rounded-lg border-2 border-gray-300 flex items-center gap-3 transition-all duration-200"><i
+                        class="fas fa-hat-cowboy fa-fw text-gray-600"></i> Caprinos</button>
+                <button data-type="sheep"
+                    class="animal-type-btn text-lg bg-gray-100 text-gray-800 py-3 px-6 rounded-lg border-2 border-gray-300 flex items-center gap-3 transition-all duration-200"><i
+                        class="fas fa-cloud fa-fw text-gray-400"></i> Ovinos</button>
+                <button data-type="chickens"
+                    class="animal-type-btn text-lg bg-gray-100 text-gray-800 py-3 px-6 rounded-lg border-2 border-gray-300 flex items-center gap-3 transition-all duration-200"><i
+                        class="fas fa-dove fa-fw text-orange-600"></i> Aves</button>
+                <button data-type="pigs"
+                    class="animal-type-btn text-lg bg-gray-100 text-gray-800 py-3 px-6 rounded-lg border-2 border-gray-300 flex items-center gap-3 transition-all duration-200"><i
+                        class="fas fa-piggy-bank fa-fw text-pink-500"></i> Suínos</button>
+                <button data-type="fish"
+                    class="animal-type-btn text-lg bg-gray-100 text-gray-800 py-3 px-6 rounded-lg border-2 border-gray-300 flex items-center gap-3 transition-all duration-200"><i
+                        class="fas fa-fish fa-fw text-blue-500"></i> Peixes</button>
+                <button data-type="equine"
+                    class="animal-type-btn text-lg bg-gray-100 text-gray-800 py-3 px-6 rounded-lg border-2 border-gray-300 flex items-center gap-3 transition-all duration-200"><i
+                        class="fas fa-horse fa-fw text-orange-900"></i> Equinos</button>
+                <button data-type="others"
+                    class="animal-type-btn text-lg bg-gray-100 text-gray-800 py-3 px-6 rounded-lg border-2 border-gray-300 flex items-center gap-3 transition-all duration-200"><i
+                        class="fas fa-kiwi-bird fa-fw text-green-600"></i> Outros</button>
+            </div>
+
+            <div id="animal-management-content-wrapper" class="hidden">
+                <div id="animal-tabs-container" class="border-b border-gray-200 mb-6">
+                    <nav class="-mb-px flex flex-wrap gap-2" aria-label="Tabs">
+                        <button data-tab="herd"
+                            class="animal-tab-btn whitespace-nowrap py-2 px-3 border-b-2 font-medium text-xs flex items-center gap-1 min-w-0 flex-shrink"><i
+                                class="fas fa-users"></i> Plantel</button>
+                        <button data-tab="production" id="animal-production-tab"
+                            class="animal-tab-btn whitespace-nowrap py-2 px-3 border-b-2 font-medium text-xs flex items-center gap-1 min-w-0 flex-shrink hidden"><i
+                                class="fas fa-chart-line"></i> Produção</button>
+                        <button data-tab="feeding"
+                            class="animal-tab-btn whitespace-nowrap py-2 px-3 border-b-2 font-medium text-xs flex items-center gap-1 min-w-0 flex-shrink"><i
+                                class="fas fa-utensils"></i> Alimentação</button>
+                        <button data-tab="medication"
+                            class="animal-tab-btn whitespace-nowrap py-2 px-3 border-b-2 font-medium text-xs flex items-center gap-1 min-w-0 flex-shrink"><i
+                                class="fas fa-pills"></i> Medicação</button>
+                        <button data-tab="financials"
+                            class="animal-tab-btn whitespace-nowrap py-2 px-3 border-b-2 font-medium text-xs flex items-center gap-1 min-w-0 flex-shrink"><i
+                                class="fas fa-chart-pie"></i> Financeiro</button>
+                    </nav>
+                </div>
+                <div id="animal-management-content">
+                </div>
+            </div>
+            <div id="animal-prompt" class="text-center text-gray-500 py-8">
+                <i class="fas fa-clipboard-list fa-3x text-gray-400 mb-4"></i>
+                <p>Selecione um tipo de animal para começar a gerir.</p>
+            </div>
+
+            <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i
+                    class="fas fa-times fa-lg"></i></button>
+        </div>
+    </div>
+
+    <div id="animal-sub-modal" class="modal-backdrop">
+    </div>
+
+    <div id="sales-modal" class="modal-backdrop">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-lg mx-auto p-6 relative">
+            <h2 class="text-2xl font-bold mb-4 text-center">Registrar Venda</h2>
+            <div id="sale-type-buttons" class="flex justify-center flex-wrap gap-2 mb-6 border-b pb-4">
+                <button data-type="harvest"
+                    class="sale-type-btn bg-gray-100 text-gray-800 py-2 px-3 rounded-lg border-2 border-gray-300 flex items-center gap-2 text-sm"><i
+                        class="fas fa-tractor text-green-600"></i> Colheita</button>
+                <button data-type="live_animal"
+                    class="sale-type-btn bg-gray-100 text-gray-800 py-2 px-3 rounded-lg border-2 border-gray-300 flex items-center gap-2 text-sm"><i
+                        class="fas fa-paw text-yellow-800"></i> Animal Vivo</button>
+                <button data-type="slaughtered_animal"
+                    class="sale-type-btn bg-gray-100 text-gray-800 py-2 px-3 rounded-lg border-2 border-gray-300 flex items-center gap-2 text-sm"><i
+                        class="fas fa-drumstick-bite text-red-600"></i> Animal Abatido</button>
+                <button data-type="animal_product"
+                    class="sale-type-btn bg-gray-100 text-gray-800 py-2 px-3 rounded-lg border-2 border-gray-300 flex items-center gap-2 text-sm"><i
+                        class="fas fa-egg text-purple-500"></i> Produtos (Leite, Ovos...)</button>
+                <button data-type="other"
+                    class="sale-type-btn bg-gray-100 text-gray-800 py-2 px-3 rounded-lg border-2 border-gray-300 flex items-center gap-2 text-sm"><i
+                        class="fas fa-box-open text-gray-600"></i> Outra Venda</button>
+            </div>
+
+            <form id="sale-form" class="hidden space-y-4">
+                <input type="hidden" id="sale-type">
+
+                <div id="sale-harvest-fields" class="hidden space-y-4">
+                    <div>
+                        <label for="sale-harvest-select" class="block text-sm font-medium text-gray-700">Colheita
+                            Disponível</label>
+                        <select id="sale-harvest-select" class="mt-1 block w-full px-3 py-2 border rounded-md"></select>
+                    </div>
+                    <div id="harvest-yield-info" class="text-sm text-center bg-gray-100 p-2 rounded-md">Selecione uma
+                        colheita</div>
+                </div>
+
+                <div id="sale-animal-fields" class="hidden space-y-4">
+                    <div>
+                        <label for="sale-animal-select" class="block text-sm font-medium text-gray-700">Animal/Lote
+                            Disponível</label>
+                        <select id="sale-animal-select" class="mt-1 block w-full px-3 py-2 border rounded-md"></select>
+                    </div>
+                </div>
+
+                <div id="sale-product-fields" class="hidden space-y-4">
+                    <div>
+                        <label for="sale-product-select" class="block text-sm font-medium text-gray-700">Produto
+                            Disponível</label>
+                        <select id="sale-product-select" class="mt-1 block w-full px-3 py-2 border rounded-md"></select>
+                    </div>
+                </div>
+
+                <div id="sale-other-fields" class="hidden space-y-4">
+                    <div>
+                        <label for="sale-description" class="block text-sm font-medium text-gray-700">Descrição da
+                            Venda</label>
+                        <input type="text" id="sale-description" placeholder="Ex: Venda de lenha, aluguer de trator"
+                            class="mt-1 block w-full px-3 py-2 border rounded-md">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="sale-quantity" class="block text-sm font-medium text-gray-700">Quantidade
+                        Vendida</label>
+                    <div class="flex items-center gap-2 mt-1">
+                        <input type="text" id="sale-quantity" required
+                            class="calc-input block w-3/4 px-3 py-2 border rounded-md">
+                        <span id="sale-quantity-unit-display" class="block w-1/4 px-3 py-2 bg-gray-100 border rounded-md text-center font-medium">un</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="sale-price" class="block text-sm font-medium text-gray-700">Valor Total da Venda
+                        (R$)</label>
+                    <input type="text" id="sale-price" required
+                        class="calc-input mt-1 block w-full px-3 py-2 border rounded-md">
+                </div>
+                <div>
+                    <label for="sale-date" class="block text-sm font-medium text-gray-700">Data da Venda</label>
+                    <input type="date" id="sale-date" required class="mt-1 block w-full px-3 py-2 border rounded-md">
+                </div>
+                <div>
+                    <label for="sale-notes" class="block text-sm font-medium text-gray-700">Observações</label>
+                    <textarea id="sale-notes" rows="3" class="mt-1 block w-full px-3 py-2 border rounded-md"
+                        placeholder="Ex: Cliente, condições de pagamento, etc."></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button"
+                        class="cancel-sale-btn bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button>
+                    <button type="submit"
+                        class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700">Confirmar
+                        Venda</button>
+                </div>
+            </form>
+            <div id="sale-prompt" class="text-center text-gray-500 py-8">
+                <p>Selecione o que deseja vender.</p>
+            </div>
+            <button class="close-modal-btn absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i
+                    class="fas fa-times fa-lg"></i></button>
+        </div>
+    </div>
+
+    <!-- Modal para observação de imagem -->
+    <div id="image-observation-modal" class="modal-backdrop" style="z-index: 70;">
+        <div class="modal bg-white rounded-lg shadow-xl w-11/12 max-w-sm mx-auto p-6">
+            <h3 class="text-lg font-bold mb-4">Adicionar Observação</h3>
+            <p class="text-gray-600 mb-4 text-sm">Digite uma observação para esta(s) imagem(ns).</p>
+            <textarea id="image-observation-textarea" rows="3" class="w-full p-2 border rounded-md" placeholder="Ex: Aplicação de vacina, Peso 200kg..."></textarea>
+            <div class="flex justify-end gap-4 mt-6">
+                <button id="image-observation-cancel-btn" class="bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-400">Cancelar</button>
+                <button id="image-observation-confirm-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Dia -->
+    <div id="day-details-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal bg-white rounded-lg shadow-2xl w-11/12 md:max-w-2xl mx-auto p-6 max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="day-details-title" class="text-2xl font-bold text-gray-800"></h2>
+                <button id="close-day-details-btn" class="text-gray-400 hover:text-gray-600 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="day-events-list" class="space-y-4">
+                <!-- Os eventos serão inseridos dinamicamente aqui -->
+            </div>
+            
+            <div class="mt-6 flex justify-center">
+                <button id="close-day-details-bottom-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <button id="calculator-toggle-btn" title="Abrir Calculadora"><i class="fas fa-calculator"></i></button>
+    <div id="calculator-widget">
+        <div id="calculator-header">Calculadora <i class="fas fa-arrows-alt"></i></div>
+        <div id="calculator-display">
+            <div id="calc-expression-display" class="expression"></div>
+            <div id="calc-main-display" class="main">0</div>
+        </div>
+        <div id="calculator-buttons">
+            <button class="calc-btn operator">C</button> <button class="calc-btn operator">←</button> <button
+                class="calc-btn operator">÷</button> <button class="calc-btn operator">×</button>
+            <button class="calc-btn">7</button> <button class="calc-btn">8</button> <button class="calc-btn">9</button>
+            <button class="calc-btn operator">-</button>
+            <button class="calc-btn">4</button> <button class="calc-btn">5</button> <button class="calc-btn">6</button>
+            <button class="calc-btn operator">+</button>
+            <button class="calc-btn">1</button> <button class="calc-btn">2</button> <button class="calc-btn">3</button>
+            <button class="calc-btn operator">%</button>
+            <button class="calc-btn" style="grid-column: span 2;">0</button> <button class="calc-btn">.</button> <button
+                class="calc-btn operator">=</button>
+            <button class="calc-btn apply">Aplicar</button>
+        </div>
+    </div>
+
+    <!--INLINE_SCRIPT_PLACEHOLDER-->
+    
+    <!--INLINE_SCRIPT_PLACEHOLDER-->
+<script src="assets/js/index.inline1.js"></script>
+<script src="assets/js/index.inline2.js"></script>
+<script type="module" src="assets/js/index.inline3.js"></script>
+<script src="assets/js/index.inline4.js"></script>
+</body>
+
+</html>
