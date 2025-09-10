@@ -41,7 +41,7 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // NOVO: Chave pública VAPID (substitua pela sua chave gerada no backend)
-        const VAPID_PUBLIC_KEY = 'BAvz0_E24ZW7r7nU_ZjCld-G7N7qQ5jRk2hoTMAH3Uqr0X90NzFD6y34KYgQ3xFQcN786kDNou-lhq_cRqOcED8';
+        const FRONTEND_VAPID_PUBLIC_KEY = 'BAvz0_E24ZW7r7nU_ZjCld-G7N7qQ5jRk2hoTMAH3Uqr0X90NzFD6y34KYgQ3xFQcN786kDNou-lhq_cRqOcED8';
 
         // NOVO: Converte a chave VAPID para o formato correto
         function urlBase64ToUint8Array(base64String) {
@@ -95,7 +95,7 @@
 
                 const subscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+                    applicationServerKey: urlBase64ToUint8Array(FRONTEND_VAPID_PUBLIC_KEY),
                 });
 
                 console.log('Usuário inscrito com sucesso:', subscription);

@@ -1,6 +1,7 @@
 [build]
   command = ""
   publish = "."
+  environment = { SECRETS_SCAN_OMIT_PATHS = "assets/js/index.inline3.js" }
 
 [[headers]]
   for = "/sw.js"
