@@ -47,8 +47,8 @@ exports.handler = async (event, context) => {
                 },
                 notification: {
                     // Replace with your actual PWA domain
-                    icon: 'https://your-pwa-domain.com/assets/img/faviconsf.png',
-                    badge: 'https://your-pwa-domain.com/assets/img/faviconsf.png',
+                                        icon: 'https://agrocultivegestaorural.com.br/assets/img/faviconsf.png',
+                    badge: 'https://agrocultivegestaorural.com.br/assets/img/faviconsf.png',
                     data: {
                         url: url || '/',
                     },
