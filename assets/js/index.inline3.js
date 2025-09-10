@@ -41,7 +41,7 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // NOVO: Chave pública VAPID (substitua pela sua chave gerada no backend)
-        const VAPID_PUBLIC_KEY = 'BA06pLJSx8aZJCo2O1sZ-Q0j3cQy0b-sWTg2cto_u4GzXpZ1gN2d_aQ2z0Jc1gGvX1q0Y8hZ-jZ7lJ9fXvJz8Yc';
+        const VAPID_PUBLIC_KEY = 'BAvz0_E24ZW7r7nU_ZjCld-G7N7qQ5jRk2hoTMAH3Uqr0X90NzFD6y34KYgQ3xFQcN786kDNou-lhq_cRqOcED8';
 
         // NOVO: Converte a chave VAPID para o formato correto
         function urlBase64ToUint8Array(base64String) {
@@ -61,14 +61,9 @@
 
         // NOVO: Envia a inscrição para o seu servidor (exemplo)
         async function sendSubscriptionToServer(subscription) {
-            // Esta é uma função de exemplo. Você precisa de um endpoint no seu backend
-            // para receber e salvar esta inscrição para poder enviar notificações.
             console.log('Enviando inscrição para o servidor:', JSON.stringify(subscription));
-            
-            // Exemplo de como seria a chamada para o seu backend:
-            /*
             try {
-                const response = await fetch('/api/save-subscription', {
+                const response = await fetch('/.netlify/functions/save-subscription', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -84,7 +79,6 @@
             } catch (error) {
                 console.error('Erro ao enviar inscrição para o servidor:', error);
             }
-            */
         }
 
         // NOVO: Inscreve o usuário para receber notificações push
