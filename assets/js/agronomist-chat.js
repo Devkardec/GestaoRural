@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             messageElement.classList.add('text-left', 'text-gray-800');
             // Usa a biblioteca marked para converter Markdown em HTML
             const htmlContent = marked.parse(message);
-            messageElement.innerHTML = `<strong>Agrônomo:</strong> ${htmlContent}`;
+            messageElement.innerHTML = `<strong>Consultor:</strong> ${htmlContent}`;
         }
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 console.error('Error sending message to Netlify Function:', error);
-                addMessage('agronomist', 'Desculpe, houve um erro ao conectar com o Agrônomo Virtual. Tente novamente mais tarde.');
+                addMessage('agronomist', 'Desculpe, houve um erro ao conectar com o Consultor Agropecuário. Tente novamente mais tarde.');
             } finally {
                 chatInput.disabled = false; // Re-enable input
                 sendChatBtn.disabled = false; // Re-enable button
