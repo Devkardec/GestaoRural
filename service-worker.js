@@ -139,28 +139,43 @@ self.addEventListener('notificationclose', (event) => {
 // NOVO: Evento de Push para notificações do servidor
 self.addEventListener('push', (event) => {
     console.log('Service Worker: Push Received.');
-    
-    let data = {};
+
+    let notificationData = {};
+    let webpushData = {};
+    let urlToOpen = '/'; // Default URL
+
     if (event.data) {
         try {
-            data = event.data.json();
+            const receivedData = event.data.json();
+            // Extract data from the 'notification' field
+            if (receivedData.notification) {
+                notificationData = receivedData.notification;
+            }
+            // Extract data from the 'webpush' field, specifically its 'notification' part
+            if (receivedData.webpush && receivedData.webpush.notification) {
+                webpushData = receivedData.webpush.notification;
+                if (webpushData.data && webpushData.data.url) {
+                    urlToOpen = webpushData.data.url;
+                }
+            }
         } catch (e) {
             console.error('Error parsing push data:', e);
-            data = {
+            // Fallback if JSON parsing fails, assume plain text body
+            notificationData = {
                 title: 'Nova Notificação',
                 body: event.data.text(),
             };
         }
     }
 
-    const title = data.title || 'AgroCultive';
+    const title = notificationData.title || 'AgroCultive';
     const options = {
-        body: data.body || 'Você tem uma nova mensagem.',
-        icon: data.icon || 'assets/img/faviconsf.png',
-        badge: 'assets/img/faviconsf.png',
-        tag: data.tag || 'general',
+        body: notificationData.body || 'Você tem uma nova mensagem.',
+        icon: webpushData.icon || notificationData.icon || 'assets/img/faviconsf.png', // Prefer webpush icon, then notification icon, then default
+        badge: webpushData.badge || 'assets/img/faviconsf.png', // Prefer webpush badge, then default
+        tag: webpushData.tag || notificationData.tag || 'general', // Prefer webpush tag, then notification tag, then default
         data: {
-            url: data.url || '/'
+            url: urlToOpen
         }
     };
 
