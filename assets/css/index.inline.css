@@ -742,7 +742,7 @@
 
     #calculator-toggle-btn {
         position: fixed;
-        bottom: 380px; /* Adjusted to be above the calculator */
+        bottom: 20px;
         right: 20px;
         width: 60px;
         height: 60px;
@@ -755,7 +755,7 @@
         cursor: pointer;
         font-size: 1.5rem;
         transition: all 0.3s;
-        z-index: 1001; /* Increased z-index to be above the calculator */
+        z-index: 999;
     }
 
     #calculator-toggle-btn:hover {
