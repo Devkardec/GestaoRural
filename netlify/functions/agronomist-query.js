@@ -14,7 +14,7 @@ exports.handler = async (event, context) => {
     try {
         // Access your API key as an environment variable
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
 
         const prompt = `Você é um consultor agrícola virtual chamado "Agrônomo Virtual" para o aplicativo AgroCultive. Sua função é fornecer conselhos e informações úteis sobre agricultura, plantio, pragas, doenças, manejo de culturas, etc. Responda de forma concisa, útil e profissional, focando em práticas agrícolas sustentáveis e eficientes. Se a pergunta não for relacionada à agricultura, responda educadamente que sua especialidade é consultoria agrícola.
 
