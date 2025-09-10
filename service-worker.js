@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'agrocultive-cache-v3'; // Versão do cache incrementada
+const CACHE_NAME = 'agrocultive-cache-v4'; // Versão do cache incrementada
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -117,11 +117,18 @@ self.addEventListener('push', (event) => {
     console.log('Service Worker: Push Received.');
 
     let data = {};
-    try {
-        data = event.data.json();
-    } catch (e) {
-        console.log('Push data is not JSON, treating as text.');
-        data = { notification: { title: 'Nova Notificação', body: event.data.text() } };
+    // Tenta analisar o payload como JSON. Se falhar, trata como texto.
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            console.log('Push data is not JSON, treating as text.');
+            data = { notification: { title: 'Nova Notificação', body: event.data.text() } };
+        }
+    } else {
+        console.log('Push event, but no data.');
+        // Cria uma notificação padrão se não houver dados
+        data = { notification: { title: 'AgroCultive', body: 'Você tem uma nova atualização.' } };
     }
 
     const notification = data.notification || {};
@@ -132,6 +139,7 @@ self.addEventListener('push', (event) => {
         badge: notification.badge || 'assets/img/faviconsf.png',
         tag: notification.tag || 'general-notification',
         data: {
+            // Tenta obter a URL de diferentes campos possíveis no payload
             url: notification.click_action || data.fcmOptions?.link || '/'
         }
     };
