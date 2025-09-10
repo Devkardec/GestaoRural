@@ -1465,7 +1465,6 @@
     </div>
 
 
-    <button id="calculator-toggle-btn" title="Abrir Calculadora"><i class="fas fa-calculator"></i></button>
     <div id="calculator-widget">
         <div id="calculator-header">Calculadora <i class="fas fa-arrows-alt"></i></div>
         <div id="calculator-display">
@@ -1487,6 +1486,21 @@
         </div>
     </div>
 
+    <!-- Floating Action Button Menu -->
+    <div class="fab-container">
+        <button id="fab-main-btn" class="fab-main">
+            <i class="fas fa-plus"></i>
+        </button>
+        <div class="fab-options">
+            <button id="fab-calculator-btn" class="fab-option" title="Calculadora">
+                <i class="fas fa-calculator"></i>
+            </button>
+            <button id="fab-agronomist-btn" class="fab-option" title="Consultor Agropecuário">
+                <i class="fas fa-wheat-awn"></i>
+            </button>
+        </div>
+    </div>
+
     <!--INLINE_SCRIPT_PLACEHOLDER-->
     
     <!--INLINE_SCRIPT_PLACEHOLDER-->
@@ -1496,11 +1510,7 @@
 <script src="assets/js/index.inline4.js"></script>
 
 <script type="module" src="assets/js/sales.enhancements.js"></script>
-
-    <!-- Agronomist Character Button -->
-<div id="agronomist-button" title="Consultor Agropecuário" class="fixed bottom-6 left-6 z-50 cursor-pointer bg-green-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:scale-110 hover:bg-green-700 transition-all duration-300">
-    <i class="fas fa-wheat-awn fa-2x"></i>
-</div>
+<script src="assets/js/fab-menu.js"></script>
 
 <!-- Agronomist Chat Modal (Hidden by default) -->
 <div id="agronomist-chat-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] hidden">

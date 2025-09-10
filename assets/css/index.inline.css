@@ -763,6 +763,90 @@
         transform: scale(1.1);
     }
 
+    /* === NOVO: Floating Action Button (FAB) Menu === */
+    .fab-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: center;
+    }
+
+    .fab-main {
+        width: 60px;
+        height: 60px;
+        background-color: #16a34a; /* Verde principal */
+        color: white;
+        border: none;
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+        font-size: 1.8rem;
+    }
+
+    .fab-main:hover {
+        background-color: #15803d; /* Verde mais escuro */
+        transform: scale(1.05);
+    }
+
+    .fab-main.open {
+        transform: rotate(45deg);
+        background-color: #ef4444; /* Vermelho para fechar */
+    }
+
+    .fab-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+        transform: scale(0) translateY(50px);
+        transform-origin: bottom center;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .fab-options.open {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .fab-option {
+        width: 50px;
+        height: 50px;
+        background-color: #ffffff;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        font-size: 1.4rem;
+    }
+
+    .fab-option:hover {
+        transform: scale(1.1);
+        background-color: #f3f4f6;
+    }
+
+    #fab-calculator-btn {
+        color: #2563eb; /* Azul */
+    }
+
+    #fab-agronomist-btn {
+        color: #16a34a; /* Verde */
+    }
+
     /* === SCROLLBARS === */
     .modal::-webkit-scrollbar,
     .overflow-y-auto::-webkit-scrollbar {
