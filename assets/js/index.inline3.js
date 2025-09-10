@@ -83,12 +83,20 @@
 
         // NOVO: Inscreve o usuário para receber notificações push
         async function subscribeUserToPush() {
+            // Primeiro, peça permissão
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                showToast('Permissão para notificações negada.', 'warning');
+                console.log('Permissão para notificações não foi concedida.');
+                return;
+            }
+
             try {
                 const registration = await navigator.serviceWorker.ready;
                 const existingSubscription = await registration.pushManager.getSubscription();
 
                 if (existingSubscription) {
-                    console.log('Usuário já inscrito.');
+                    console.log('Usuário já inscrito. Enviando inscrição para o servidor novamente para garantir a sincronização.');
                     await sendSubscriptionToServer(existingSubscription);
                     return;
                 }

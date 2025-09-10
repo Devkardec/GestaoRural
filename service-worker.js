@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'agrocultive-cache-v2';
+const CACHE_NAME = 'agrocultive-cache-v3'; // Versão do cache incrementada
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -18,19 +18,25 @@ const ASSETS_TO_CACHE = [
     '/propriedade.css'
 ];
 
-// Evento de Instalação: Cacheia os arquivos essenciais do app
+// Evento de Instalação: Cacheia os arquivos e força a ativação
 self.addEventListener('install', (event) => {
+    console.log('Service Worker: Installing...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('Service Worker: Caching app shell');
                 return cache.addAll(ASSETS_TO_CACHE);
             })
+            .then(() => {
+                // Força o novo service worker a se tornar ativo imediatamente.
+                return self.skipWaiting();
+            })
     );
 });
 
-// Evento de Ativação: Limpa caches antigos
+// Evento de Ativação: Limpa caches antigos e assume o controle
 self.addEventListener('activate', (event) => {
+    console.log('Service Worker: Activating...');
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
@@ -41,6 +47,10 @@ self.addEventListener('activate', (event) => {
                     }
                 })
             );
+        }).then(() => {
+            // Torna-se o controlador para todos os clientes dentro do seu escopo.
+            console.log('Service Worker: Claiming clients.');
+            return self.clients.claim();
         })
     );
 });
@@ -77,113 +87,52 @@ self.addEventListener('fetch', (event) => {
     );
 });
 
-// Gerenciamento de Notificações
-let scheduledNotifications = new Map();
-
-// Escutar mensagens do app principal
-self.addEventListener('message', (event) => {
-    const { type, title, body, tag } = event.data;
-    
-    if (type === 'SHOW_NOTIFICATION') {
-        self.registration.showNotification(title, {
-            body: body,
-            icon: 'assets/img/faviconsf.png',
-            badge: 'assets/img/faviconsf.png',
-            tag: tag,
-            requireInteraction: true,
-            actions: [
-                {
-                    action: 'view',
-                    title: 'Ver Detalhes'
-                },
-                {
-                    action: 'dismiss',
-                    title: 'Dispensar'
-                }
-            ],
-            data: {
-                url: '/',
-                tag: tag
-            }
-        });
-    } else if (type === 'CANCEL_NOTIFICATION') {
-        // Cancelar notificação específica
-        self.registration.getNotifications({ tag: tag }).then(notifications => {
-            notifications.forEach(notification => notification.close());
-        });
-    }
-});
-
 // Lidar com cliques nas notificações
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     
-    if (event.action === 'view' || !event.action) {
-        // Abrir ou focar na janela do app
-        event.waitUntil(
-            clients.matchAll({ type: 'window', includeUncontrolled: true })
-                .then((clientList) => {
-                    // Se já existe uma janela aberta, focar nela
-                    for (const client of clientList) {
-                        if (client.url.includes(self.location.origin) && 'focus' in client) {
-                            return client.focus();
-                        }
+    const urlToOpen = event.notification.data.url || '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then((clientList) => {
+                // Se já existe uma janela aberta, focar nela e navegar para a URL
+                for (const client of clientList) {
+                    // Verifica se a URL do cliente é a raiz e se o cliente tem a função 'focus'
+                    if (client.url.endsWith('/') && 'focus' in client) {
+                        client.navigate(urlToOpen); // Navega para a URL da notificação
+                        return client.focus();
                     }
-                    // Senão, abrir nova janela
-                    if (clients.openWindow) {
-                        return clients.openWindow('/');
-                    }
-                })
-        );
-    }
-    // Se action === 'dismiss', apenas fecha a notificação (já feito acima)
+                }
+                // Senão, abrir nova janela já com a URL correta
+                if (clients.openWindow) {
+                    return clients.openWindow(urlToOpen);
+                }
+            })
+    );
 });
 
-// Lidar com fechamento de notificações
-self.addEventListener('notificationclose', (event) => {
-    console.log('Notificação fechada:', event.notification.tag);
-});
-
-// NOVO: Evento de Push para notificações do servidor
+// Evento de Push para notificações do servidor
 self.addEventListener('push', (event) => {
     console.log('Service Worker: Push Received.');
 
-    let notificationData = {};
-    let webpushData = {};
-    let urlToOpen = '/'; // Default URL
-
-    if (event.data) {
-        try {
-            const receivedData = event.data.json();
-            // Extract data from the 'notification' field
-            if (receivedData.notification) {
-                notificationData = receivedData.notification;
-            }
-            // Extract data from the 'webpush' field, specifically its 'notification' part
-            if (receivedData.webpush && receivedData.webpush.notification) {
-                webpushData = receivedData.webpush.notification;
-                if (webpushData.data && webpushData.data.url) {
-                    urlToOpen = webpushData.data.url;
-                }
-            }
-        } catch (e) {
-            console.error('Error parsing push data:', e);
-            // Fallback if JSON parsing fails, assume plain text body
-            notificationData = {
-                title: 'Nova Notificação',
-                body: event.data.text(),
-            };
-        }
+    let data = {};
+    try {
+        data = event.data.json();
+    } catch (e) {
+        console.log('Push data is not JSON, treating as text.');
+        data = { notification: { title: 'Nova Notificação', body: event.data.text() } };
     }
 
-    const title = notificationData.title || 'AgroCultive';
+    const notification = data.notification || {};
+    const title = notification.title || 'AgroCultive';
     const options = {
-        body: notificationData.body || 'Você tem uma nova mensagem.',
-        icon: webpushData.icon || notificationData.icon || 'assets/img/faviconsf.png', // Prefer webpush icon, then notification icon, then default
-        badge: webpushData.badge || 'assets/img/faviconsf.png', // Prefer webpush badge, then default
-        tag: webpushData.tag || notificationData.tag || 'general', // Prefer webpush tag, then notification tag, then default
+        body: notification.body || 'Você tem uma nova mensagem.',
+        icon: notification.icon || 'assets/img/faviconsf.png',
+        badge: notification.badge || 'assets/img/faviconsf.png',
+        tag: notification.tag || 'general-notification',
         data: {
-            url: urlToOpen
+            url: notification.click_action || data.fcmOptions?.link || '/'
         }
     };
 
