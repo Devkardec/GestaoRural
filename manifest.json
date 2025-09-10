@@ -2,6 +2,7 @@
   "name": "AgroCultive: Gestão Rural Completa",
   "short_name": "AgroCultive",
   "description": "Sistema completo de gestão rural para controle de animais, plantações, estoque e finanças",
+  "gcm_sender_id": "103953800507",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f0f2f5",

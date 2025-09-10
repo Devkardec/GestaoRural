@@ -1,0 +1,16 @@
+{
+  "name": "agrocultive-push-backend",
+  "version": "1.0.0",
+  "description": "Backend for AgroCultive PWA push notifications",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "Gemini CLI",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "firebase-admin": "^11.11.0"
+  }
+}

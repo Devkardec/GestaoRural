@@ -49,6 +49,10 @@ let clientSearchTerm = "";
 // ---------- DOM ----------
 const loadingIndicator = document.getElementById("loading-indicator");
 const clientList = document.getElementById("client-list");
+
+const reportBtn = document.getElementById("open-report-btn");
+reportBtn?.addEventListener("click", openPurchasesReport);
+
 const addClientBtn = document.getElementById("add-client-btn");
 const clientModal = document.getElementById("client-modal");
 const clientForm = document.getElementById("client-form");
@@ -68,12 +72,40 @@ const parseBR = (s)=>{
 };
 const esc = (t)=> String(t ?? "")
   .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+
+
+    // Limpa prefixos como "Colheita:", "Venda de Colheita:", etc.
+    function cleanProductLabel(name){
+      return String(name||'')
+        .replace(/^\s*(Venda(?: de)?\s*)?/i,'')
+        .replace(/^\s*(Colheita|Animal|Animal abatido|Produto)\s*:\s*/i,'')
+        .trim();
+    }
 const computeTotal = ({price, unitPrice, quantity, amount}) => {
   if (Number.isFinite(Number(amount))) return Number(amount);
   const p = safeNum(unitPrice ?? price, 0);
   const q = safeNum(quantity, 0);
   return p * q;
 };
+
+
+// --------- Helpers de data / status ---------
+function parseISODate(dstr){
+  try{ return new Date(String(dstr).slice(0,10)+'T00:00:00'); }catch(_){ return null; }
+}
+function fmtBR(dstr){
+  const d = parseISODate(dstr);
+  return d && !isNaN(d.getTime()) ? d.toLocaleDateString('pt-BR') : (dstr || '-');
+}
+function daysBetween(aISO, bISO){
+  const a = parseISODate(aISO), b = parseISODate(bISO);
+  if (!a || !b || isNaN(a) || isNaN(b)) return null;
+  return Math.round((b - a)/(1000*60*60*24));
+}
+function isOverdue(dueISO, todayISO){
+  const a = parseISODate(dueISO), b = parseISODate(todayISO);
+  return a && b && a.getTime() < b.getTime();
+}
 function showToast(message, type="success"){
   const toast = document.getElementById("toast");
   const msg = document.getElementById("toast-message");
@@ -207,7 +239,7 @@ function renderClients(docs){
                 const dbr = new Date(s.date+"T00:00:00").toLocaleDateString("pt-BR");
                 return `
                 <div class="sale-item" style="display:grid;grid-template-columns:1fr 120px 120px;gap:8px;align-items:center;">
-                  <span>${esc(s.product||s.productName)} (${safeNum(s.quantity,0)}x)</span>
+                  <span>${esc(cleanProductLabel(s.product||s.productName))} (${safeNum(s.quantity,0)}x)</span>
                   <span class="sale-date" style="text-align:center;">${dbr}</span>
                   <span class="sale-amount" style="text-align:right;">${totalItem}</span>
                 </div>`;
@@ -331,14 +363,24 @@ async function handleSaleSubmit(e){
   const opt = select.options[select.selectedIndex];
   if (!opt?.value) return showToast("Selecione um produto","error");
 
+  // Capturar dados de pagamento
+  const paymentMethod = document.getElementById("sale-payment-method")?.value || "avista";
+  const aprazoDays = document.getElementById("aprazo-days")?.value || null;
+  const dueDate = document.getElementById("aprazo-duedate")?.value || null;
+
   const sale = {
     productId: opt.value,
     productName: opt.dataset.name,
     quantity: safeNum(document.getElementById("sale-quantity").value, 0),
     unitPrice: parseBR(document.getElementById("sale-price").value),
     date: document.getElementById("sale-date").value,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    // Adicionar dados de pagamento
+    paymentMethod: paymentMethod,
+    aprazoDays: paymentMethod === 'aprazo' ? aprazoDays : null,
+    dueDate: paymentMethod === 'aprazo' ? dueDate : null
   };
+  
   const total = computeTotal(sale);
 
   try{
@@ -357,14 +399,17 @@ async function handleSaleSubmit(e){
       const clienteNome = cliSnap.data().name || "";
       const vendas = Array.isArray(cliSnap.data().sales) ? cliSnap.data().sales : [];
 
-      // Nova venda (cliente.sales)
+      // Nova venda (cliente.sales) - incluir dados de pagamento
       const newSale = {
         product: sale.productName,
         quantity: sale.quantity,
         unitPrice: sale.unitPrice,
         amount: total,
         date: sale.date,
-        timestamp: sale.timestamp
+        timestamp: sale.timestamp,
+        paymentMethod: sale.paymentMethod,
+        aprazoDays: sale.aprazoDays,
+        dueDate: sale.dueDate
       };
       t.update(productRef, { remaining: stock - sale.quantity });
 
@@ -402,7 +447,7 @@ async function handleSaleSubmit(e){
 function showSaleConfirmation(){ saleConfirmationModal.classList.remove("hidden"); }
 function closeSaleConfirmationModal(){ saleConfirmationModal.classList.add("hidden"); }
 
-async function generateReceiptFromData({ clientId, productName, product, quantity, unitPrice, price, amount, date }){
+async function generateReceiptFromData({ clientId, productName, product, quantity, unitPrice, price, amount, date, paymentMethod, aprazoDays, dueDate }){
   const propDoc = await getDoc(doc(db,"users",currentUser.uid,"propriedade_info","dados"));
   const prop = propDoc.exists()? propDoc.data() : {};
   const cliDoc = await getDoc(doc(db,"users",currentUser.uid,"clientes", clientId));
@@ -410,6 +455,23 @@ async function generateReceiptFromData({ clientId, productName, product, quantit
   const total = computeTotal({ price: unitPrice ?? price, quantity, amount });
   const nomeProd = productName || product || "-";
   const dataVenda = new Date(date + "T00:00:00").toLocaleDateString("pt-BR");
+  
+  // Formatação da forma de pagamento
+  let paymentInfo = "";
+  if (paymentMethod === 'aprazo' && dueDate) {
+    const dataVencimento = new Date(dueDate + "T00:00:00").toLocaleDateString("pt-BR");
+    paymentInfo = `\n💳 FORMA DE PAGAMENTO: A prazo\n📅 Prazo: ${aprazoDays || '-'} dias\n⏰ Vencimento: ${dataVencimento}`;
+  } else {
+    const formasPagamento = {
+      'avista': 'À vista',
+      'pix': 'PIX',
+      'dinheiro': 'Dinheiro',
+      'cartao': 'Cartão',
+      'aprazo': 'A prazo'
+    };
+    paymentInfo = `\n💳 FORMA DE PAGAMENTO: ${formasPagamento[paymentMethod] || 'À vista'}`;
+  }
+  
   return `
 🌱 RECIBO DE COMPRA - AGROCULTIVE 🌱
 
@@ -427,7 +489,7 @@ ${cli.email ? `Email: ${cli.email}` : ""}
 🛒 DETALHES DA COMPRA:
 Produto: ${nomeProd}
 Quantidade: ${quantity}
-Data: ${dataVenda}
+Data: ${dataVenda}${paymentInfo}
 
 💰 VALOR TOTAL: ${money(total)}
 
@@ -511,6 +573,25 @@ window.viewClientReceipts = async function (clientId, clientName){
         </div>
       </div>`;
     document.body.appendChild(modal);
+
+  // Renderiza forma de pagamento
+  (function(){
+    try{
+      const lbl = modal.querySelector('#receipt-payment-block');
+      if (!lbl) return;
+      const m = (data.sale.paymentMethod||'').toLowerCase();
+      const map = { 'avista':'À vista','pix':'PIX','dinheiro':'Dinheiro','cartao':'Cartão','cartao_credito':'Cartão de Crédito','cartao_debito':'Cartão de Débito','boleto':'Boleto','outro':'Outro','aprazo':'A prazo' };
+      if (m==='aprazo' && data.sale.dueDate){
+        const dias = data.sale.aprazoDays!=null? String(data.sale.aprazoDays) : '-';
+        const dt = new Date(String(data.sale.dueDate)+'T00:00:00');
+        const venc = isNaN(dt.getTime())? String(data.sale.dueDate) : dt.toLocaleDateString('pt-BR');
+        lbl.innerHTML = `<span class="font-medium">Forma de Pagamento:</span> A prazo • <span class="font-medium">Prazo:</span> ${dias} dias • <span class="font-medium">Vencimento:</span> ${venc}`;
+      } else {
+        const nm = map[m] || 'À vista';
+        lbl.innerHTML = `<span class="font-medium">Forma de Pagamento:</span> ${nm}`;
+      }
+    }catch(e){ console.warn('Falha ao renderizar pagamento no recibo:', e); }
+  })();
   }catch(e){ console.error(e); showToast("Erro ao abrir recibos","error"); }
 };
 window.closeReceiptsModal = ()=> document.getElementById("receipts-modal")?.remove();
@@ -529,7 +610,15 @@ window.regenerateReceipt = async function (clientId, saleIndex){
       issueAt: new Date().toLocaleString("pt-BR"),
       seller: { name: prop.name||"-", doc: prop.doc||"-", phone: prop.phone||"-", email: prop.email||"-" },
       client: { name: c.name||"-", doc: c.doc||"-", phone: c.phone||"-", email: c.email||"-" },
-      sale: { product: s.product||s.productName||"-", quantity: safeNum(s.quantity,0), date: new Date(s.date+"T00:00:00").toLocaleDateString("pt-BR"), total }
+      sale: {
+        product: s.product||s.productName||"-",
+        quantity: s.quantity || 1,
+        date: new Date((s.date||new Date().toISOString().slice(0,10))+"T00:00:00").toLocaleDateString("pt-BR"),
+        total: computeTotal(s),
+        paymentMethod: s.paymentMethod || 'avista',
+        aprazoDays: (s.aprazoDays ?? null),
+        dueDate: (s.dueDate || null)
+      }
     });
   }catch(e){ console.error(e); showToast("Erro ao gerar recibo","error"); }
 };
@@ -572,7 +661,7 @@ function openModernReceiptModal(data){
         <div class="border rounded-xl overflow-hidden">
           <div class="bg-gray-50 px-4 py-2 text-xs text-gray-600">Detalhes</div>
           <div class="p-4" style="display:grid;grid-template-columns:1fr 120px 120px;gap:8px;align-items:center;">
-            <div class="text-gray-800">${esc(data.sale.product)}</div>
+            <div class="text-gray-800">${esc(cleanProductLabel(data.sale.product))}</div>
             <div class="text-gray-600 text-center text-sm">${esc(String(data.sale.quantity))} un.</div>
             <div class="text-right font-semibold text-green-600">${money(data.sale.total)}</div>
           </div>
@@ -583,7 +672,11 @@ function openModernReceiptModal(data){
           <span class="text-xl font-extrabold text-green-700">${money(data.sale.total)}</span>
         </div>
 
-        <div class="flex gap-2 pt-2 border-t">
+        
+<div class="mt-2">
+  <div class="text-sm text-gray-700" id="receipt-payment-block"></div>
+</div>
+<div class="flex gap-2 pt-2 border-t">
           <button onclick="copyModernReceiptText()" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"><i class="fas fa-copy mr-2"></i>Copiar</button>
           <button onclick="window.print()" class="flex-1 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-black transition-colors"><i class="fas fa-print mr-2"></i>Imprimir</button>
         </div>
@@ -594,6 +687,25 @@ function openModernReceiptModal(data){
 
   document.body.appendChild(modal);
 
+  // Renderiza forma de pagamento
+  (function(){
+    try{
+      const lbl = modal.querySelector('#receipt-payment-block');
+      if (!lbl) return;
+      const m = (data.sale.paymentMethod||'').toLowerCase();
+      const map = { 'avista':'À vista','pix':'PIX','dinheiro':'Dinheiro','cartao':'Cartão','cartao_credito':'Cartão de Crédito','cartao_debito':'Cartão de Débito','boleto':'Boleto','outro':'Outro','aprazo':'A prazo' };
+      if (m==='aprazo' && data.sale.dueDate){
+        const dias = data.sale.aprazoDays!=null? String(data.sale.aprazoDays) : '-';
+        const dt = new Date(String(data.sale.dueDate)+'T00:00:00');
+        const venc = isNaN(dt.getTime())? String(data.sale.dueDate) : dt.toLocaleDateString('pt-BR');
+        lbl.innerHTML = `<span class="font-medium">Forma de Pagamento:</span> A prazo • <span class="font-medium">Prazo:</span> ${dias} dias • <span class="font-medium">Vencimento:</span> ${venc}`;
+      } else {
+        const nm = map[m] || 'À vista';
+        lbl.innerHTML = `<span class="font-medium">Forma de Pagamento:</span> ${nm}`;
+      }
+    }catch(e){ console.warn('Falha ao renderizar pagamento no recibo:', e); }
+  })();
+
   // Preenche o texto (oculto) para copiar
   const text = [
     "RECIBO DE COMPRA - AGROCULTIVE",
@@ -601,7 +713,7 @@ function openModernReceiptModal(data){
     `Vendedor: ${data.seller.name} | Doc: ${data.seller.doc} | Tel: ${data.seller.phone} | Email: ${data.seller.email}`,
     `Cliente: ${data.client.name} | Doc: ${data.client.doc} | Tel: ${data.client.phone} | Email: ${data.client.email}`,
     "",
-    `Produto: ${data.sale.product}`,
+    `Produto: ${cleanProductLabel(data.sale.product)}`,
     `Quantidade: ${data.sale.quantity}`,
     `Data: ${data.sale.date}`,
     `VALOR TOTAL: ${money(data.sale.total)}`,
@@ -698,3 +810,191 @@ window.__saveCashbookWithClient = async function ({ description, amount, date, t
 };
 
 console.log("[clientes.js] carregado com recibo moderno e integrações.");
+
+
+// Focar cliente via ?clientId=... (abrir recibos direto)
+(function(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const focusId = params.get('clientId');
+    if (!focusId) return;
+    // Aguarda snapshot
+    const tryOpen = setInterval(async ()=>{
+      if (!allClientDocs || allClientDocs.length===0) return;
+      clearInterval(tryOpen);
+      const snap = allClientDocs.find(d=> d.id === focusId);
+      if (!snap) return;
+      const name = (snap.data()?.name)||"Cliente";
+      viewClientReceipts(focusId, name);
+    }, 300);
+  }catch(e){ console.warn('focusClientFromQuery erro', e); }
+})();
+
+
+// ---------- Relatório de Compras (A Receber / Pagas) ----------
+async function openPurchasesReport(){
+  try{
+    if (!Array.isArray(allClientDocs) || allClientDocs.length===0){
+      return showToast("Nenhum cliente para gerar relatório","warning");
+    }
+    const today = new Date().toISOString().slice(0,10);
+    const entries = [];
+    allClientDocs.forEach(docSnap=>{
+      const c = docSnap.data() || {};
+      const sales = Array.isArray(c.sales) ? c.sales : [];
+      sales.forEach((s, idx)=>{
+        const total = computeTotal(s);
+        const due = (s.paymentMethod==='aprazo') ? (s.dueDate || null) : null;
+        const paid = !!s.paid;
+        const status = paid ? 'paga' : (due ? (isOverdue(due, today) ? 'vencida' : 'a_vencer') : 'avista');
+        entries.push({
+          clientId: docSnap.id,
+          clientName: c.name || 'Cliente',
+          index: idx,
+          product: s.product || s.productName || '-',
+          date: s.date || today,
+          total, due, paid, status, paymentMethod: s.paymentMethod || 'avista', aprazoDays: s.aprazoDays ?? null
+        });
+      });
+    });
+
+    const aReceber = entries.filter(e => e.paymentMethod==='aprazo' && !e.paid);
+    const pagas = entries.filter(e => e.paid===true);
+
+    // Modal
+    const modal = document.createElement('div');
+    modal.className = "fixed inset-0 bg-black/50 z-50 flex items-center justify-center";
+    modal.innerHTML = `
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-500 text-white p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h3 class="text-lg font-semibold"><i class="fas fa-file-alt mr-2"></i>Relatório de Compras</h3>
+          <div class="flex items-center gap-2">
+            <button id="notify-btn" class="bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-lg text-sm"><i class="fas fa-bell mr-1"></i>Ativar lembretes</button>
+            <button class="bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-lg text-sm" onclick="this.closest('.fixed').remove()"><i class="fas fa-times mr-1"></i>Fechar</button>
+          </div>
+        </div>
+        <div class="p-5 space-y-6 sm:space-y-8">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="border rounded-xl overflow-hidden">
+              <div class="bg-gray-50 px-4 py-2 text-xs text-gray-600">Compras a receber</div>
+              <div class="divide-y" id="report-areceber"></div>
+            </div>
+            <div class="border rounded-xl overflow-hidden">
+              <div class="bg-gray-50 px-4 py-2 text-xs text-gray-600">Contas já pagas</div>
+              <div class="divide-y" id="report-pagas"></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+
+    const ar = modal.querySelector('#report-areceber');
+    const pa = modal.querySelector('#report-pagas');
+
+    function line(e){
+      const venc = e.due ? fmtBR(e.due) : '-';
+      const prazo = (e.aprazoDays!=null) ? `${e.aprazoDays} dias` : '-';
+      const statusTag = e.status==='vencida' ? '<span class="text-red-600 text-xs font-semibold">VENCIDA</span>' :
+                        e.status==='a_vencer' ? '<span class="text-yellow-600 text-xs font-semibold">A VENCER</span>' :
+                        '<span class="text-gray-500 text-xs">-</span>';
+      const btn = (!e.paid && e.paymentMethod==='aprazo') ?
+        `<button data-cid="${e.clientId}" data-idx="${e.index}" class="mark-paid bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded-lg">Marcar como pago</button>`
+        : '';
+      return `<div class="p-4 sm:p-5 bg-white flex flex-col sm:flex-row sm:items-center justify-between text-sm gap-3">
+        <div>
+          <div class="font-medium">${e.clientName}</div>
+          <div class="text-gray-600">${e.product} • ${fmtBR(e.date)} • ${prazo} • Venc: ${venc}</div>
+        </div>
+        <div class="flex items-center gap-3">
+          ${statusTag}
+          <div class="font-semibold text-green-700">${money(e.total)}</div>
+          ${btn}
+        </div>
+      </div>`;
+    }
+
+    ar.innerHTML = aReceber.length ? aReceber.map(line).join('') : '<div class="p-3 text-sm text-gray-500">Nada a receber.</div>';
+    pa.innerHTML = pagas.length ? pagas.map(line).join('') : '<div class="p-3 text-sm text-gray-500">Sem pagamentos marcados.</div>';
+
+    // Handler "marcar como pago"
+    modal.querySelectorAll('.mark-paid').forEach(btn=>{
+      btn.addEventListener('click', async (ev)=>{
+        const cid = ev.currentTarget.getAttribute('data-cid');
+        const idx = Number(ev.currentTarget.getAttribute('data-idx'));
+        await markSaleAsPaid(cid, idx);
+        showToast("Venda marcada como paga","success");
+        modal.remove();
+        openPurchasesReport(); // recarrega
+      });
+    });
+
+    // Lembretes (Notificações nativas simples)
+    modal.querySelector('#notify-btn')?.addEventListener('click', async ()=>{
+  try{
+    const today = new Date().toISOString().slice(0,10);
+    const proximas = aReceber.filter(e => e.due && !isOverdue(e.due, today) && daysBetween(today, e.due) <= 7);
+    let count = proximas.length;
+    if (!('Notification' in window)) {
+      showToast(`Navegador sem suporte a notificações. ${count} conta(s) próxima(s) destacadas no relatório.`, "warning");
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm!=='granted') {
+      showToast(`Permissão negada. ${count} conta(s) próxima(s) destacadas no relatório.`, "warning");
+      return;
+    }
+    proximas.forEach(e=>{
+      const title = 'Conta a receber em breve';
+      const body = `${e.clientName}: ${money(e.total)} vence em ${fmtBR(e.due)} (${e.aprazoDays||'-'} dias)`;
+      new Notification(title, { body });
+    });
+    showToast(`${count} lembrete(s) criado(s) para os próximos 7 dias`, "success");
+  }catch(err){ console.error(err); showToast("Falha ao ativar lembretes","error"); }
+});
+
+  }catch(err){
+    console.error(err);
+    showToast("Erro ao gerar relatório","error");
+  }
+}
+
+async function markSaleAsPaid(clientId, saleIndex){
+  try{
+    await runTransaction(db, async (t)=>{
+      const ref = doc(db, "users", currentUser.uid, "clientes", clientId);
+      const snap = await t.get(ref);
+      if (!snap.exists()) throw new Error("Cliente não encontrado");
+      const data = snap.data() || {};
+      const sales = Array.isArray(data.sales) ? data.sales : [];
+      const s = sales[saleIndex];
+      if (!s) throw new Error("Venda não encontrada");
+
+      // Se já paga, só confirma
+      if (s.paid) return;
+
+      // Grava no livro-caixa se ainda não gravou (campo cashbookId nulo)
+      if (!s.cashbookId){
+        const total = computeTotal(s);
+        const tx = {
+          description: `Pagamento cliente ${data.name || 'Cliente'} - ${s.product||s.productName||'Venda'}`,
+          amount: total,
+          date: (s.dueDate || new Date().toISOString().slice(0,10)),
+          type: "receita",
+          category: "vendas",
+          clientId: clientId,
+          clienteNome: data.name || 'Cliente',
+          timestamp: new Date().toISOString()
+        };
+        const txRef = await addDoc(collection(db, "users", currentUser.uid, "transacoes"), tx);
+        s.cashbookId = txRef.id;
+      }
+
+      s.paid = true;
+      sales[saleIndex] = s;
+      t.update(ref, { sales });
+    });
+  }catch(err){
+    console.error(err);
+    showToast("Falha ao marcar como pago","error");
+  }
+}

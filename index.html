@@ -1309,6 +1309,10 @@
                             Disponível</label>
                         <select id="sale-harvest-select" class="mt-1 block w-full px-3 py-2 border rounded-md"></select>
                     </div>
+                    <div id="harvest-quantity-display" class="text-sm text-gray-600 mt-1 pl-1">
+                        <i class="fas fa-box-open mr-1"></i>
+                        <span>Selecione uma colheita para ver a quantidade disponível</span>
+                    </div>
                     <div id="harvest-yield-info" class="text-sm text-center bg-gray-100 p-2 rounded-md">Selecione uma
                         colheita</div>
                 </div>
@@ -1319,6 +1323,10 @@
                             Disponível</label>
                         <select id="sale-animal-select" class="mt-1 block w-full px-3 py-2 border rounded-md"></select>
                     </div>
+                    <div id="animal-quantity-display" class="text-sm text-gray-600 mt-1 pl-1">
+                        <i class="fas fa-horse mr-1"></i>
+                        <span>Selecione um animal/lote para ver a quantidade disponível</span>
+                    </div>
                 </div>
 
                 <div id="sale-product-fields" class="hidden space-y-4">
@@ -1326,6 +1334,10 @@
                         <label for="sale-product-select" class="block text-sm font-medium text-gray-700">Produto
                             Disponível</label>
                         <select id="sale-product-select" class="mt-1 block w-full px-3 py-2 border rounded-md"></select>
+                    </div>
+                    <div id="product-quantity-display" class="text-sm text-gray-600 mt-1 pl-1">
+                        <i class="fas fa-cubes mr-1"></i>
+                        <span>Selecione um produto para ver a quantidade disponível</span>
                     </div>
                 </div>
 
@@ -1338,7 +1350,44 @@
                     </div>
                 </div>
 
+                
+                <!-- Cliente da Venda -->
                 <div>
+                    <label for="sale-client-select" class="block text-sm font-medium text-gray-700">Cliente</label>
+                    <select id="sale-client-select" class="mt-1 block w-full px-3 py-2 border rounded-md">
+                        <option value="">Selecione um cliente</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Clientes são carregados automaticamente do cadastro.</p>
+                </div>
+
+                <!-- Forma de Pagamento -->
+                <div>
+                    <label for="sale-payment-method" class="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
+                    <select id="sale-payment-method" class="mt-1 block w-full px-3 py-2 border rounded-md">
+                        <option value="pix">PIX</option>
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="cartao_credito">Cartão de Crédito</option>
+                        <option value="cartao_debito">Cartão de Débito</option>
+                        <option value="boleto">Boleto</option>
+                        <option value="outro">Outro</option>
+                        <option value="aprazo">A prazo</option>
+                    </select>
+                </div>
+                <!-- Campos "A prazo" -->
+                <div id="aprazo-fields" class="hidden grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="aprazo-days" class="block text-sm font-medium text-gray-700">Prazo (dias)</label>
+                        <input type="number" id="aprazo-days" min="1" value="30"
+                            class="mt-1 block w-full px-3 py-2 border rounded-md">
+                    </div>
+                    <div>
+                        <label for="aprazo-duedate" class="block text-sm font-medium text-gray-700">Vencimento</label>
+                        <input type="date" id="aprazo-duedate"
+                            class="mt-1 block w-full px-3 py-2 border rounded-md">
+                    </div>
+                </div>
+    
+<div>
                     <label for="sale-quantity" class="block text-sm font-medium text-gray-700">Quantidade
                         Vendida</label>
                     <div class="flex items-center gap-2 mt-1">
@@ -1444,6 +1493,27 @@
 <script src="assets/js/index.inline2.js"></script>
 <script type="module" src="assets/js/index.inline3.js"></script>
 <script src="assets/js/index.inline4.js"></script>
+
+<script type="module" src="assets/js/sales.enhancements.js"></script>
+
+    <!-- Modal Pós-Venda (moderno) -->
+    <div id="sale-finished-modal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/40"></div>
+      <div class="relative mx-auto mt-24 w-11/12 max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden">
+        <div class="px-6 pt-6 pb-4 text-center">
+          <div class="mx-auto mb-3 h-12 w-12 rounded-full bg-teal-100 flex items-center justify-center">
+            <i class="fas fa-receipt text-teal-600"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-800">Venda finalizada</h3>
+          <p class="mt-1 text-sm text-gray-600">Deseja emitir o recibo agora?</p>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 flex gap-2 justify-end">
+          <a id="sale-finished-link" href="clientes.html" class="px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700">Emitir recibo</a>
+          <button id="sale-finished-cancel" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">Não agora</button>
+        </div>
+      </div>
+    </div>
+    
 </body>
 
 </html>

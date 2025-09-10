@@ -135,3 +135,34 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('notificationclose', (event) => {
     console.log('Notificação fechada:', event.notification.tag);
 });
+
+// NOVO: Evento de Push para notificações do servidor
+self.addEventListener('push', (event) => {
+    console.log('Service Worker: Push Received.');
+    
+    let data = {};
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            console.error('Error parsing push data:', e);
+            data = {
+                title: 'Nova Notificação',
+                body: event.data.text(),
+            };
+        }
+    }
+
+    const title = data.title || 'AgroCultive';
+    const options = {
+        body: data.body || 'Você tem uma nova mensagem.',
+        icon: data.icon || 'assets/img/faviconsf.png',
+        badge: 'assets/img/faviconsf.png',
+        tag: data.tag || 'general',
+        data: {
+            url: data.url || '/'
+        }
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+});

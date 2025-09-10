@@ -40,6 +40,83 @@
             enableIndexedDbPersistence // ✅ JÁ IMPORTADO
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // NOVO: Chave pública VAPID (substitua pela sua chave gerada no backend)
+        const VAPID_PUBLIC_KEY = 'BA06pLJSx8aZJCo2O1sZ-Q0j3cQy0b-sWTg2cto_u4GzXpZ1gN2d_aQ2z0Jc1gGvX1q0Y8hZ-jZ7lJ9fXvJz8Yc';
+
+        // NOVO: Converte a chave VAPID para o formato correto
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        // NOVO: Envia a inscrição para o seu servidor (exemplo)
+        async function sendSubscriptionToServer(subscription) {
+            // Esta é uma função de exemplo. Você precisa de um endpoint no seu backend
+            // para receber e salvar esta inscrição para poder enviar notificações.
+            console.log('Enviando inscrição para o servidor:', JSON.stringify(subscription));
+            
+            // Exemplo de como seria a chamada para o seu backend:
+            /*
+            try {
+                const response = await fetch('/api/save-subscription', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ subscription, userId: auth.currentUser.uid }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao salvar inscrição no servidor.');
+                }
+
+                console.log('Inscrição salva no servidor com sucesso.');
+            } catch (error) {
+                console.error('Erro ao enviar inscrição para o servidor:', error);
+            }
+            */
+        }
+
+        // NOVO: Inscreve o usuário para receber notificações push
+        async function subscribeUserToPush() {
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                const existingSubscription = await registration.pushManager.getSubscription();
+
+                if (existingSubscription) {
+                    console.log('Usuário já inscrito.');
+                    await sendSubscriptionToServer(existingSubscription);
+                    return;
+                }
+
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+                });
+
+                console.log('Usuário inscrito com sucesso:', subscription);
+                await sendSubscriptionToServer(subscription);
+
+            } catch (error) {
+                console.error('Falha ao inscrever o usuário para notificações push:', error);
+                if (error.name === 'NotAllowedError') {
+                    showToast('Você bloqueou as notificações. Para recebê-las, ative nas configurações do seu navegador.', 'warning');
+                } else {
+                    showToast('Não foi possível ativar as notificações push.', 'error');
+                }
+            }
+        }
+
         // VARIÁVEIS GLOBAIS DO FIREBASE
         let app, auth, db; // ✅ JÁ DECLARADAS
 
@@ -1109,21 +1186,41 @@ function updateCurrentWeatherPanel(data) {
                 // Combinar transações gerais e de animais
                 const allCombinedTransactions = [...allTransactions, ...allAnimalFinancials];
                 
+                // Calcular transações futuras (data futura) + vendas a prazo pendentes
                 const futureTransactions = allCombinedTransactions
-                    .filter(t => new Date(t.date + 'T00:00:00') > today)
+                    .filter(t => {
+                        // Transações com data futura
+                        const isFutureDate = new Date(t.date + 'T00:00:00') > today;
+                        // Vendas a prazo pendentes (independente da data)
+                        const isPendingInstallment = t.category === 'a_receber' && t.status === 'pendente';
+                        return isFutureDate || isPendingInstallment;
+                    })
                     .reduce((sum, t) => sum + (t.type === 'receita' ? t.amount : -t.amount), 0);
-                const totalExpenses = allCombinedTransactions
-                    .filter(t => t.type === 'despesa')
+                    
+                // Calcular contas vencidas: despesas + vendas a prazo vencidas
+                const overdueTransactions = allCombinedTransactions
+                    .filter(t => {
+                        const transactionDate = new Date(t.date + 'T00:00:00');
+                        // Despesas em geral
+                        const isExpense = t.type === 'despesa';
+                        // Vendas a prazo vencidas (dueDate no passado e status pendente)
+                        const isOverdueInstallment = t.category === 'a_receber' && 
+                                                   t.status === 'pendente' && 
+                                                   t.dueDate && 
+                                                   new Date(t.dueDate + 'T00:00:00') < today;
+                        return isExpense || isOverdueInstallment;
+                    })
                     .reduce((sum, t) => sum + t.amount, 0);
+                    
                 const totalRevenues = allCombinedTransactions
                     .filter(t => t.type === 'receita')
                     .reduce((sum, t) => sum + t.amount, 0);
                 
                 document.getElementById('future-transactions').textContent = formatCurrency(Math.abs(futureTransactions));
-                document.getElementById('open-overdue').textContent = formatCurrency(totalExpenses);
+                document.getElementById('open-overdue').textContent = formatCurrency(overdueTransactions);
                 document.getElementById('paid-consolidated').textContent = formatCurrency(totalRevenues);
                 
-                renderDonutChart(totalRevenues, totalExpenses, Math.abs(futureTransactions));
+                renderDonutChart(totalRevenues, overdueTransactions, Math.abs(futureTransactions));
                 renderLineChart();
             };
 
@@ -1914,15 +2011,17 @@ function updateCurrentWeatherPanel(data) {
 
             // Função para solicitar permissão de notificações
             async function requestNotificationPermission() {
-                if ('Notification' in window) {
-                    if (Notification.permission === 'default') {
-                        const permission = await Notification.requestPermission();
-                        if (permission === 'granted') {
-                            showToast('Notificações ativadas! Você receberá lembretes das suas tarefas e aplicações.');
-                        } else if (permission === 'denied') {
-                            showToast('Notificações desativadas. Você pode ativá-las nas configurações do navegador.');
-                        }
+                if ('Notification' in window && 'serviceWorker' in navigator) {
+                    const permission = await Notification.requestPermission();
+
+                    if (permission === 'granted') {
+                        showToast('Notificações ativadas! Sincronizando com o servidor...');
+                        await subscribeUserToPush(); // <-- Chamar a nova função
+                    } else {
+                        showToast('Você não receberá notificações. Mude a permissão nas configurações do navegador se desejar.', 'warning');
                     }
+                } else {
+                    showToast('Seu navegador não suporta notificações push.', 'error');
                 }
             }
 
@@ -1945,8 +2044,15 @@ function updateCurrentWeatherPanel(data) {
                     showToast('Login bem-sucedido!');
                     
                     // Solicitar permissão para notificações após login bem-sucedido
-                    setTimeout(() => {
-                        requestNotificationPermission();
+                    setTimeout(async () => {
+                        // Verificar se a permissão já foi concedida para não perguntar de novo
+                        if (Notification.permission === 'granted') {
+                            console.log('Permissão já concedida. Sincronizando inscrição.');
+                            await subscribeUserToPush();
+                        } else if (Notification.permission === 'default') {
+                            // Se ainda não foi perguntado, agora é uma boa hora.
+                            await requestNotificationPermission();
+                        }
                     }, 2000); // Aguarda 2 segundos para não sobrecarregar o usuário
                     
                 } catch (error) {
@@ -4760,6 +4866,105 @@ function updateCurrentWeatherPanel(data) {
                 salesModal.style.display = 'none';
             }
 
+            // Funções auxiliares para exibição de disponibilidade
+            function updateHarvestQuantityDisplay() {
+                const select = document.getElementById('sale-harvest-select');
+                const displayEl = document.getElementById('harvest-quantity-display').querySelector('span');
+                const option = select.options[select.selectedIndex];
+                
+                if (!option || !option.value) {
+                    displayEl.textContent = 'Selecione uma colheita para ver a quantidade disponível';
+                    return;
+                }
+                
+                const remaining = option.dataset.remaining;
+                const unit = option.dataset.unit;
+                displayEl.textContent = `Disponível: ${parseFloat(remaining).toFixed(2)} ${unit}`;
+            }
+
+            function updateAnimalQuantityDisplay() {
+                const select = document.getElementById('sale-animal-select');
+                const displayEl = document.getElementById('animal-quantity-display').querySelector('span');
+                const option = select.options[select.selectedIndex];
+                
+                if (!option || !option.value) {
+                    displayEl.textContent = 'Selecione um animal/lote para ver a quantidade disponível';
+                    return;
+                }
+                
+                const quantity = option.dataset.quantity;
+                const unit = option.dataset.unit;
+                displayEl.textContent = `Disponível: ${quantity} ${unit}`;
+            }
+
+            function updateProductQuantityDisplay() {
+                const select = document.getElementById('sale-product-select');
+                const displayEl = document.getElementById('product-quantity-display').querySelector('span');
+                const option = select.options[select.selectedIndex];
+                
+                if (!option || !option.value) {
+                    displayEl.textContent = 'Selecione um produto para ver a quantidade disponível';
+                    return;
+                }
+                
+                const quantity = option.dataset.quantity;
+                const unit = option.dataset.unit;
+                displayEl.textContent = `Disponível: ${quantity} ${unit}`;
+            }
+
+            function estimateProductStock(productType) {
+                switch (productType) {
+                    case 'eggs':
+                        // Estimar baseado em galinhas poedeiras ativas
+                        const layers = allAnimals.filter(a => 
+                            a.animalType === 'chickens' && 
+                            a.subtype?.toLowerCase().includes('postura') && 
+                            a.status === 'Ativo'
+                        ).reduce((sum, a) => sum + (a.quantity || 0), 0);
+                        return Math.floor(layers * 0.8); // ~80% das galinhas produzindo
+
+                    case 'milk':
+                        // Estimar baseado em vacas leiteiras ativas
+                        const dairyCows = allAnimals.filter(a =>
+                            a.animalType === 'cattle' &&
+                            a.subtype?.toLowerCase().includes('leite') &&
+                            a.status === 'Ativo'
+                        ).reduce((sum, a) => sum + (a.quantity || 0), 0);
+                        return Math.floor(dairyCows * 15); // ~15L por vaca
+
+                    case 'cattle_calf':
+                        return allAnimals.filter(a =>
+                            a.animalType === 'cattle' &&
+                            a.subtype?.toLowerCase().includes('bezerro') &&
+                            a.status === 'Ativo'
+                        ).reduce((sum, a) => sum + (a.quantity || 0), 0);
+
+                    case 'pigs_piglet':
+                        return allAnimals.filter(a =>
+                            a.animalType === 'pigs' &&
+                            a.subtype?.toLowerCase().includes('leitão') &&
+                            a.status === 'Ativo'
+                        ).reduce((sum, a) => sum + (a.quantity || 0), 0);
+
+                    case 'goats_kid':
+                        return allAnimals.filter(a =>
+                            a.animalType === 'goats' &&
+                            a.subtype?.toLowerCase().includes('cabrito') &&
+                            a.status === 'Ativo'
+                        ).reduce((sum, a) => sum + (a.quantity || 0), 0);
+
+                    case 'sheep_lamb':
+                        return allAnimals.filter(a =>
+                            a.animalType === 'sheep' &&
+                            a.subtype?.toLowerCase().includes('cordeiro') &&
+                            a.status === 'Ativo'
+                        ).reduce((sum, a) => sum + (a.quantity || 0), 0);
+
+                    default:
+                        return 0;
+                }
+            }
+
             function switchSaleType(type) {
                 document.querySelectorAll('.sale-type-btn').forEach(b => b.classList.remove('active'));
                 document.querySelector(`.sale-type-btn[data-type="${type}"]`).classList.add('active');
@@ -4795,11 +5000,13 @@ function updateCurrentWeatherPanel(data) {
 
             function populateHarvestForSale() {
                 const select = document.getElementById('sale-harvest-select');
+                const displayEl = document.getElementById('harvest-quantity-display').querySelector('span');
                 select.innerHTML = '<option value="">Selecione uma colheita</option>';
                 const availableHarvests = allPlantings.filter(p => p.finalYieldQuantity || p.finalYield);
 
                 if (availableHarvests.length === 0) {
                     select.innerHTML = '<option value="">Nenhuma colheita finalizada</option>';
+                    displayEl.textContent = 'Nenhuma colheita disponível para venda';
                     return;
                 }
 
@@ -4824,10 +5031,13 @@ function updateCurrentWeatherPanel(data) {
                         option.value = p.id;
                         option.textContent = `${p.cropName} - ${p.variety || 'N/A'}`;
                         option.dataset.unit = unit;
+                        option.dataset.remaining = remaining;
                         select.appendChild(option);
                     }
                 });
+                select.addEventListener('change', updateHarvestQuantityDisplay);
                 updateHarvestSaleInfo();
+                updateHarvestQuantityDisplay();
             }
 
             function updateHarvestSaleInfo() {
@@ -4841,20 +5051,40 @@ function updateCurrentWeatherPanel(data) {
                 }
 
                 const planting = allPlantings.find(p => p.id === plantingId);
-                const totalSold = (planting.salesHistory || []).reduce((sum, sale) => sum + parseLocaleNumber(String(sale.quantity)), 0);
-                const [totalYield, unit] = (planting.finalYield || '0').split(' ');
-                const remaining = parseLocaleNumber(totalYield) - totalSold;
+                if (!planting) {
+                    infoDiv.textContent = 'Colheita não encontrada';
+                    return;
+                }
 
+                const totalSold = (planting.salesHistory || []).reduce((sum, sale) => sum + parseLocaleNumber(String(sale.quantity)), 0);
+                
+                // Suporte para ambos os formatos (novo e antigo)
+                let totalYield, unit;
+                if (planting.finalYieldQuantity !== undefined && planting.finalYieldUnit) {
+                    totalYield = planting.finalYieldQuantity;
+                    unit = planting.finalYieldUnit;
+                } else if (planting.finalYield) {
+                    const [yieldStr] = (planting.finalYield || '0').split(' ');
+                    totalYield = parseLocaleNumber(yieldStr);
+                    unit = planting.finalYieldUnit || 'un'; // Unidade padrão para dados antigos
+                } else {
+                    totalYield = 0;
+                    unit = 'un';
+                }
+                
+                const remaining = totalYield - totalSold;
                 infoDiv.innerHTML = `Produção Total: <strong>${totalYield} ${unit || ''}</strong>. Disponível para venda: <strong>${remaining.toFixed(2)} ${unit || ''}</strong>`;
             }
 
             function populateAnimalsForSale() {
                 const select = document.getElementById('sale-animal-select');
+                const displayEl = document.getElementById('animal-quantity-display').querySelector('span');
                 select.innerHTML = '<option value="">Selecione um animal/lote</option>';
                 const availableAnimals = allAnimals.filter(a => a.status !== 'Vendido');
 
                 if (availableAnimals.length === 0) {
                     select.innerHTML = '<option value="">Nenhum animal disponível</option>';
+                    displayEl.textContent = 'Nenhum animal disponível para venda';
                     return;
                 }
 
@@ -4862,43 +5092,92 @@ function updateCurrentWeatherPanel(data) {
                     const option = document.createElement('option');
                     option.value = a.id;
                     option.textContent = `${a.name} (${a.subtype || a.animalType})`;
+                    option.dataset.quantity = a.quantity || 1;
+                    option.dataset.unit = a.type === 'slaughtered' ? 'kg' : 'cabeças';
                     select.appendChild(option);
                 });
+                select.addEventListener('change', updateAnimalQuantityDisplay);
+                updateAnimalQuantityDisplay();
             }
 
             function populateProductsForSale() {
                 const select = document.getElementById('sale-product-select');
+                const displayEl = document.getElementById('product-quantity-display').querySelector('span');
                 select.innerHTML = '<option value="">Selecione um produto</option>';
                 const products = [
-                    { value: 'eggs', text: 'Ovos (unidade)' },
-                    { value: 'milk', text: 'Leite (litro)' },
-                    { value: 'cattle_calf', text: 'Bezerro(a)' },
-                    { value: 'pigs_piglet', text: 'Leitão' },
-                    { value: 'goats_kid', text: 'Cabrito(a)' },
-                    { value: 'sheep_lamb', text: 'Cordeiro(a)' },
+                    { value: 'eggs', text: 'Ovos (unidade)', unit: 'unidades', estimatedStock: estimateProductStock('eggs') },
+                    { value: 'milk', text: 'Leite (litro)', unit: 'litros', estimatedStock: estimateProductStock('milk') },
+                    { value: 'cattle_calf', text: 'Bezerro(a)', unit: 'bezerros', estimatedStock: estimateProductStock('cattle_calf') },
+                    { value: 'pigs_piglet', text: 'Leitão', unit: 'leitões', estimatedStock: estimateProductStock('pigs_piglet') },
+                    { value: 'goats_kid', text: 'Cabrito(a)', unit: 'cabritos', estimatedStock: estimateProductStock('goats_kid') },
+                    { value: 'sheep_lamb', text: 'Cordeiro(a)', unit: 'cordeiros', estimatedStock: estimateProductStock('sheep_lamb') },
                 ];
                 products.forEach(p => {
-                    const option = document.createElement('option');
-                    option.value = p.value;
-                    option.textContent = p.text;
-                    select.appendChild(option);
+                    if (p.estimatedStock > 0) {
+                        const option = document.createElement('option');
+                        option.value = p.value;
+                        option.textContent = p.text;
+                        option.dataset.quantity = p.estimatedStock;
+                        option.dataset.unit = p.unit;
+                        select.appendChild(option);
+                    }
                 });
+                if (select.children.length === 1) {
+                    displayEl.textContent = 'Nenhum produto animal disponível para venda';
+                }
+                select.addEventListener('change', updateProductQuantityDisplay);
+                updateProductQuantityDisplay();
             }
 
             async function handleSaleFormSubmit(e) {
                 e.preventDefault();
                 const type = document.getElementById('sale-type').value;
-                const quantity = parseLocaleNumber(document.getElementById('sale-quantity').value);
-                const price = parseLocaleNumber(document.getElementById('sale-price').value);
-                const date = document.getElementById('sale-date').value;
-                const notes = document.getElementById('sale-notes').value;
+                    const quantity = parseLocaleNumber(document.getElementById('sale-quantity').value);
+                    const price = parseLocaleNumber(document.getElementById('sale-price').value);
+                    const date = document.getElementById('sale-date').value;
+                    const notes = document.getElementById('sale-notes').value;
 
-                if (!type || !quantity || quantity <= 0 || !price || price <= 0 || !date) {
-                    showToast('Preencha todos os campos obrigatórios com valores válidos.');
-                    return;
-                }
+                    if (!type || !quantity || quantity <= 0 || !price || price <= 0 || !date) {
+                        showToast('Preencha todos os campos obrigatórios com valores válidos.');
+                        return;
+                    }
 
-                const batch = writeBatch(db);
+                    // Validação genérica de quantidade disponível
+                    const validateQuantity = (type) => {
+                        let select, option;
+                        switch(type) {
+                            case 'harvest':
+                                select = document.getElementById('sale-harvest-select');
+                                option = select.options[select.selectedIndex];
+                                if (quantity > parseFloat(option.dataset.remaining)) {
+                                    showToast(`Quantidade excede o disponível (${option.dataset.remaining} ${option.dataset.unit})`);
+                                    return false;
+                                }
+                                break;
+                            case 'live_animal':
+                            case 'slaughtered_animal':
+                                select = document.getElementById('sale-animal-select');
+                                option = select.options[select.selectedIndex];
+                                if (quantity > parseInt(option.dataset.quantity)) {
+                                    showToast(`Quantidade excede o disponível (${option.dataset.quantity} ${option.dataset.unit})`);
+                                    return false;
+                                }
+                                break;
+                            case 'animal_product':
+                                select = document.getElementById('sale-product-select');
+                                option = select.options[select.selectedIndex];
+                                if (quantity > parseInt(option.dataset.quantity)) {
+                                    showToast(`Quantidade excede o disponível (${option.dataset.quantity} ${option.dataset.unit})`);
+                                    return false;
+                                }
+                                break;
+                        }
+                        return true;
+                    };
+
+                    if (!validateQuantity(type)) {
+                        return;
+                    }                const batch = writeBatch(db);
                 let description = '';
                 let category = '';
                 let animalTypeForFinancials = null;
