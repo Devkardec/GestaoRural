@@ -1,13 +1,21 @@
 // service-worker.js
 
-const CACHE_NAME = 'agrocultive-cache-v1';
+const CACHE_NAME = 'agrocultive-cache-v2';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
     '/offline.html',
     '/manifest.json',
     'assets/img/Capa2.png',
-    'assets/img/faviconsf.png'
+    'assets/img/faviconsf.png',
+    '/assets/js/agronomist-chat.js',
+    '/assets/js/firebase-init.js',
+    '/clientes.html',
+    '/clientes.js',
+    '/clientes.css',
+    '/propriedade.html',
+    '/propriedade.js',
+    '/propriedade.css'
 ];
 
 // Evento de Instalação: Cacheia os arquivos essenciais do app
