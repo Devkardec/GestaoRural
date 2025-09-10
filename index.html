@@ -1496,6 +1496,27 @@
 
 <script type="module" src="assets/js/sales.enhancements.js"></script>
 
+    <!-- Agronomist Character Button -->
+<div id="agronomist-button" class="fixed bottom-6 right-6 z-50 cursor-pointer">
+    <img src="assets/img/faviconsf.png" alt="Agrônomo Virtual" class="w-16 h-16 rounded-full shadow-lg border-2 border-green-500 hover:scale-110 transition-transform duration-200">
+</div>
+
+<!-- Agronomist Chat Modal (Hidden by default) -->
+<div id="agronomist-chat-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] hidden">
+    <div class="bg-white rounded-lg shadow-xl w-11/12 md:max-w-md mx-auto p-6 relative">
+        <h2 class="text-2xl font-bold mb-4">Agrônomo Virtual</h2>
+        <div id="chat-messages" class="h-64 overflow-y-auto border border-gray-300 rounded-md p-3 mb-4">
+            <!-- Chat messages will appear here -->
+            <p class="text-gray-600">Olá! Como posso ajudar você hoje?</p>
+        </div>
+        <div class="flex">
+            <input type="text" id="chat-input" placeholder="Digite sua pergunta..." class="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-green-500">
+            <button id="send-chat-btn" class="bg-green-600 text-white px-4 py-2 rounded-r-md hover:bg-green-700">Enviar</button>
+        </div>
+        <button id="close-chat-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times fa-lg"></i></button>
+    </div>
+</div>
+
     <!-- Modal Pós-Venda (moderno) -->
     <div id="sale-finished-modal" class="fixed inset-0 z-50 hidden">
       <div class="absolute inset-0 bg-black/40"></div>
@@ -1514,6 +1535,7 @@
       </div>
     </div>
     
+<script src="assets/js/agronomist-chat.js"></script>
 </body>
 
 </html>
