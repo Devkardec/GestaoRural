@@ -1,43 +1,63 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
+const { GoogleAIFileManager } = require("@google/generative-ai/files");
+
+const MODEL_NAME = "gemini-1.5-pro-latest";
+const API_KEY = process.env.GEMINI_API_KEY;
+
+const genAI = new GoogleGenerativeAI(API_KEY);
+const fileManager = new GoogleAIFileManager(API_KEY);
+
+const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
 exports.handler = async (event, context) => {
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
-    }
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
 
-    const { query } = JSON.parse(event.body);
+  try {
+    const { query, history } = JSON.parse(event.body);
 
     if (!query) {
-        return { statusCode: 400, body: 'Query parameter is required.' };
+      return { statusCode: 400, body: 'Query parameter is required.' };
     }
 
-    try {
-        // Access your API key as an environment variable
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+    const generationConfig = {
+      temperature: 1,
+      topK: 64,
+      topP: 0.95,
+      maxOutputTokens: 8192,
+    };
 
-        const prompt = `Você é um consultor agrícola virtual chamado "Agrônomo Virtual" para o aplicativo AgroCultive. Sua função é fornecer conselhos e informações úteis sobre agricultura, plantio, pragas, doenças, manejo de culturas, etc. Responda de forma concisa, útil e profissional, focando em práticas agrícolas sustentáveis e eficientes. Se a pergunta não for relacionada à agricultura, responda educadamente que sua especialidade é consultoria agrícola.
+    const safetySettings = [
+      {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+      },
+      // ... (outras configurações de segurança)
+    ];
 
-        Pergunta do usuário: "${query}"
+    const chat = model.startChat({
+      generationConfig,
+      safetySettings,
+      history: history || [],
+    });
 
-        Sua resposta como Agrônomo Virtual:`;
+    const result = await chat.sendMessage(query);
+    const response = result.response;
+    const text = response.text();
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-
-        return {
-            statusCode: 200,
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ response: text }),
-        };
-    } catch (error) {
-        console.error('Error calling Gemini API:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to get response from Agrônomo Virtual.', details: error.message }),
-        };
-    }
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ response: text }),
+    };
+  } catch (error) {
+    console.error('Error calling Gemini API:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Failed to get response from Agrônomo Virtual.', details: error.message }),
+    };
+  }
 };
