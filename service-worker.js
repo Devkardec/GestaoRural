@@ -50,8 +50,8 @@ self.addEventListener('fetch', (event) => {
                 .then((cachedResponse) => {
                     // Stale-While-Revalidate: Serve do cache e atualiza em segundo plano.
                     const fetchPromise = fetch(event.request).then((networkResponse) => {
-                        // Se a requisição for bem-sucedida, atualiza o cache.
-                        if (networkResponse && networkResponse.status === 200) {
+                        // Apenas armazena em cache requisições GET bem-sucedidas.
+                        if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
                             cache.put(event.request, networkResponse.clone());
                         }
                         return networkResponse;
