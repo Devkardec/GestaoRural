@@ -3012,7 +3012,9 @@ function updateCurrentWeatherPanel(data) {
                 statusDelayedCard.addEventListener('click', () => filterPlantingsByStatus('delayed'));
                 statusEmployeesCard.addEventListener('click', () => openEmployeeModal());
                 confirmOkBtn.addEventListener('click', () => { if (confirmCallback) { confirmCallback(); } hideConfirm(); }); confirmCancelBtn.addEventListener('click', hideConfirm); cancelEditObservationBtn.addEventListener('click', () => { editObservationModal.style.display = 'none'; });
-                calculatorToggleBtn.addEventListener('click', () => { calculatorWidget.style.display = calculatorWidget.style.display === 'block' ? 'none' : 'block'; }); document.querySelectorAll('.calc-input').forEach(input => { input.addEventListener('focus', (e) => { activeCalculatorInput = e.target; }); }); setupCalculator();
+                calculatorToggleBtn?.addEventListener('click', () => { calculatorWidget.style.display = calculatorWidget.style.display === 'block' ? 'none' : 'block'; }); 
+                document.querySelectorAll('.calc-input').forEach(input => { input.addEventListener('focus', (e) => { activeCalculatorInput = e.target; }); }); 
+                setupCalculator();
                 manageEmployeesBtn.addEventListener('click', openEmployeeModal);
                 employeeModal.querySelector('.close-modal-btn').addEventListener('click', closeEmployeeModal);
                 cancelEmployeeEditBtn.addEventListener('click', resetEmployeeForm);
