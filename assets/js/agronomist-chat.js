@@ -25,7 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
             messageElement.innerHTML = `<strong>Você:</strong> ${message}`;
         } else {
             messageElement.classList.add('text-left', 'text-gray-800');
-            messageElement.innerHTML = `<strong>Agrônomo:</strong> ${message}`;
+            // Usa a biblioteca marked para converter Markdown em HTML
+            const htmlContent = marked.parse(message);
+            messageElement.innerHTML = `<strong>Agrônomo:</strong> ${htmlContent}`;
         }
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
