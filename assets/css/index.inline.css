@@ -775,9 +775,9 @@
     }
 
     .fab-main {
-        width: 60px;
-        height: 60px;
-        background-color: #16a34a; /* Verde principal */
+        width: 56px; /* Diminuído de 60px */
+        height: 56px; /* Diminuído de 60px */
+        background-color: rgba(22, 163, 74, 0.9); /* Verde principal com 90% de opacidade */
         color: white;
         border: none;
         border-radius: 50%;
@@ -786,18 +786,19 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform 0.3s ease, background-color 0.3s ease;
-        font-size: 1.8rem;
+        transition: all 0.3s ease; /* Transição para todas as propriedades */
+        font-size: 1.6rem; /* Diminuído de 1.8rem */
     }
 
     .fab-main:hover {
-        background-color: #15803d; /* Verde mais escuro */
+        background-color: rgba(21, 128, 61, 0.95); /* Verde mais escuro com 95% de opacidade */
         transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
     }
 
     .fab-main.open {
         transform: rotate(45deg);
-        background-color: #ef4444; /* Vermelho para fechar */
+        background-color: rgba(239, 68, 68, 0.9); /* Vermelho para fechar com 90% de opacidade */
     }
 
     .fab-options {
@@ -805,8 +806,8 @@
         flex-direction: column;
         gap: 12px;
         margin-bottom: 16px;
-        transition: all 0.3s ease;
-        transform: scale(0) translateY(50px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Curva de animação mais suave */
+        transform: scale(0.9) translateY(30px);
         transform-origin: bottom center;
         opacity: 0;
         pointer-events: none;
@@ -819,9 +820,9 @@
     }
 
     .fab-option {
-        width: 50px;
-        height: 50px;
-        background-color: #ffffff;
+        width: 48px; /* Diminuído de 50px */
+        height: 48px; /* Diminuído de 50px */
+        background-color: rgba(255, 255, 255, 0.95); /* Fundo branco com leve transparência */
         color: #4b5563;
         border: 1px solid #e5e7eb;
         border-radius: 50%;
@@ -831,7 +832,7 @@
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
-        font-size: 1.4rem;
+        font-size: 1.3rem; /* Diminuído de 1.4rem */
     }
 
     .fab-option:hover {
