@@ -1,13 +1,6 @@
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
-const { GoogleAIFileManager } = require("@google/generative-ai/files");
 
 const MODEL_NAME = "gemini-1.5-pro-latest";
-const API_KEY = process.env.GEMINI_API_KEY;
-
-const genAI = new GoogleGenerativeAI(API_KEY);
-const fileManager = new GoogleAIFileManager(API_KEY);
-
-const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -20,6 +13,10 @@ exports.handler = async (event, context) => {
     if (!query) {
       return { statusCode: 400, body: 'Query parameter is required.' };
     }
+
+    // Inicializa o cliente da API dentro do handler
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
     const generationConfig = {
       temperature: 1,
