@@ -42,6 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
             chatInput.disabled = true; // Disable input while waiting for response
             sendChatBtn.disabled = true; // Disable button
 
+            // Add loading indicator
+            const loadingElement = document.createElement('p');
+            loadingElement.id = 'agronomist-loading';
+            loadingElement.classList.add('mb-2', 'text-left', 'text-gray-800');
+            loadingElement.innerHTML = `<strong>Consultor:</strong> <i class="fas fa-spinner fa-spin"></i> Analisando...`;
+            chatMessages.appendChild(loadingElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
             try {
                 const response = await fetch('/.netlify/functions/agronomist-query', {
                     method: 'POST',
@@ -53,6 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
 
+                document.getElementById('agronomist-loading')?.remove();
+
                 if (response.ok) {
                     addMessage('agronomist', data.response);
                 } else {
@@ -60,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 console.error('Error sending message to Netlify Function:', error);
+                document.getElementById('agronomist-loading')?.remove();
                 addMessage('agronomist', 'Desculpe, houve um erro ao conectar com o Consultor Agropecuário. Tente novamente mais tarde.');
             } finally {
                 chatInput.disabled = false; // Re-enable input
