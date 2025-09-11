@@ -124,6 +124,9 @@
         // VARIÁVEIS GLOBAIS DO FIREBASE
         let app, auth, db; // ✅ JÁ DECLARADAS
 
+        // URL do Backend no Render
+        const RENDER_BACKEND_URL = 'https://agrocultive-backend.onrender.com';
+
         // Funções auxiliares para notificações
         function scheduleNotification(title, body, scheduledTime, tag = null) {
             if ('Notification' in window && Notification.permission === 'granted') {
@@ -1969,7 +1972,7 @@ function updateCurrentWeatherPanel(data) {
 
                 try {
                     const idToken = await auth.currentUser.getIdToken();
-                    const response = await fetch('/asaas/status', {
+                    const response = await fetch(`${RENDER_BACKEND_URL}/asaas/status`, {
                         headers: {
                             'Authorization': `Bearer ${idToken}`
                         }
@@ -2151,7 +2154,7 @@ function updateCurrentWeatherPanel(data) {
                     // Chamar nosso backend para criar o perfil do usuário no Firestore com o trial
                     try {
                         const idToken = await userCredential.user.getIdToken();
-                        const response = await fetch('/api/create-user-profile', {
+                        const response = await fetch(`${RENDER_BACKEND_URL}/api/create-user-profile`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
