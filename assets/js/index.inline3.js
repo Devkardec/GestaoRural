@@ -2003,17 +2003,15 @@ function updateCurrentWeatherPanel(data) {
                         statusElement.textContent = 'Premium';
                         statusElement.className = 'text-xs font-medium text-white bg-yellow-500 px-2 py-1 rounded-full';
                     } else if (data.premiumStatus === 'TRIAL') {
-                        const endDate = new Date(data.trialEndDate);
-                        const now = new Date();
-                        const diffTime = endDate - now;
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                        if (diffDays > 0) {
-                            statusElement.textContent = `Trial (${diffDays} dias restantes)`;
-                        } else {
-                            statusElement.textContent = 'Trial Expirado';
-                        }
+                        const dr = typeof data.daysRemaining === 'number' ? data.daysRemaining : (() => {
+                            const endDate = new Date(data.trialEndDate);
+                            return Math.max(0, Math.ceil((endDate - new Date()) / 86400000));
+                        })();
+                        statusElement.textContent = dr > 0 ? `Trial (${dr} dias)` : 'Trial Expirado';
                         statusElement.className = 'text-xs font-medium text-white bg-blue-500 px-2 py-1 rounded-full';
+                    } else if (data.premiumStatus === 'INACTIVE') {
+                        statusElement.textContent = 'Inativo';
+                        statusElement.className = 'text-xs font-medium text-white bg-red-600 px-2 py-1 rounded-full';
                     } else {
                         statusElement.textContent = 'Plano Gratuito';
                         statusElement.className = 'text-xs font-medium text-white bg-gray-500 px-2 py-1 rounded-full';
