@@ -1,7 +1,8 @@
 // backend/db.js
 
-let _db; // Will be set by initializeDb
-let _usersCollection; // Will be set by initializeDb
+let _db; // Firestore instance (admin.firestore())
+let _usersCollection; // Referência da coleção 'users'
+const admin = require('firebase-admin');
 
 // Function to initialize the db and usersCollection
 function initializeDb(dbInstance) {
@@ -16,24 +17,28 @@ function initializeDb(dbInstance) {
  * @returns {object} O novo usuário criado.
  */
 async function createUserWithTrial(uid, userData) {
-    const trialStartDate = _db.FieldValue.serverTimestamp();
-    const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const trialStartDate = admin.firestore.FieldValue.serverTimestamp();
+    // 7 dias de trial
+    const trialEndDateJS = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const newUser = {
         uid,
-        ...userData,
+        name: userData.name || userData.email?.split('@')[0] || 'Usuário',
+        email: userData.email || null,
+        cpfCnpj: userData.cpfCnpj || null,
         asaasCustomerId: null,
+        createdAt: trialStartDate,
         premium: {
             status: 'TRIAL',
             trialStartDate: trialStartDate,
-            trialEndDate: _db.Timestamp.fromDate(trialEndDate),
+            trialEndDate: admin.firestore.Timestamp.fromDate(trialEndDateJS),
             subscriptionId: null,
             lastUpdate: trialStartDate,
             paymentLink: null
         }
     };
 
-    await _usersCollection.doc(uid).set(newUser);
+    await _usersCollection.doc(uid).set(newUser, { merge: true });
     return newUser;
 }
 

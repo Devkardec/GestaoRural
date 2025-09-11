@@ -1,7 +1,7 @@
 
 // backend/middleware/auth.js
 const admin = require('firebase-admin');
-const { findUserByUID } = require('../db');
+const { findUserByUID, createUserWithTrial } = require('../db');
 
 /**
  * Middleware para verificar o token de autenticação do Firebase
@@ -19,10 +19,17 @@ async function checkAuthAndPremium(req, res, next) {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         const uid = decodedToken.uid;
 
-        // 2. Busca o usuário no Firestore
-        const user = await findUserByUID(uid);
+        // 2. Busca o usuário no Firestore; se não existir, cria automaticamente (auto-provisioning)
+        let user = await findUserByUID(uid);
         if (!user) {
-            return res.status(404).json({ error: 'Usuário não encontrado no banco de dados.' });
+            console.log('⚠️  Usuário não encontrado. Criando perfil trial automaticamente:', uid);
+            try {
+                user = await createUserWithTrial(uid, { email: decodedToken.email, name: decodedToken.name });
+                console.log('✅ Perfil trial criado on-demand.');
+            } catch (createErr) {
+                console.error('❌ Falha ao criar perfil trial automaticamente:', createErr);
+                return res.status(500).json({ error: 'Falha ao criar perfil do usuário.' });
+            }
         }
 
         // 3. Anexa o usuário ao objeto da requisição para uso posterior
