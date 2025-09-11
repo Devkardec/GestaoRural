@@ -5,7 +5,7 @@ const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
 const asaasRoutes = require('./asaas/routes');
 const asaasWebhook = require('./asaas/webhook');
-const { createUserWithTrial } = require('./db');
+const { createUserWithTrial, initializeDb } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,8 +34,9 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
 
-const db = admin.firestore();
-const messaging = admin.messaging();
+initializeDb(admin); // Inicializa o módulo db com a instância do admin
+
+const messaging = admin.messaging(); // Keep messaging if it's used elsewhere in server.js
 
 // --- Configuração das Chaves VAPID ---
 // IMPORTANTE: Use variáveis de ambiente para suas chaves VAPID!
