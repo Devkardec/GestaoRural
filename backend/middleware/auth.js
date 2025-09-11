@@ -109,10 +109,29 @@ async function checkAuth(req, res, next) {
 
         // 2. Busca o usuário no Firestore
         console.log('📂 Fetching user from database...');
-        const user = await findUserByUID(uid);
+        let user = await findUserByUID(uid);
         if (!user) {
             console.log('❌ User not found in database for UID:', uid);
             return res.status(404).json({ error: 'Usuário não encontrado no banco de dados.' });
+        }
+
+        // Bypass admin também aqui para rotas que usam apenas checkAuth (ex: /asaas/status)
+        let adminUids = (process.env.ADMIN_UIDS || '').split(',').map(s => s.trim()).filter(Boolean);
+        if (adminUids.length === 0) { // fallback provisório
+            adminUids = ['W5luXYrJD3dQFMa4otcXZxRk0rk1'];
+        }
+        if (adminUids.includes(user.uid) && (!user.premium || user.premium.status !== 'ACTIVE')) {
+            try {
+                await updateUser(user.uid, {
+                    'premium.status': 'ACTIVE',
+                    'premium.lastUpdate': new Date()
+                });
+                // Recarrega para garantir objeto atualizado
+                user = await findUserByUID(user.uid);
+                console.log('👑 (checkAuth) Admin forçado para ACTIVE em /status:', user.uid);
+            } catch (e) {
+                console.warn('Falha ao promover admin em checkAuth:', e.message);
+            }
         }
 
         console.log('✅ User found in database (normalizado):', {
@@ -122,7 +141,7 @@ async function checkAuth(req, res, next) {
         });
 
         // 3. Anexa o usuário ao objeto da requisição para uso posterior
-        req.user = user;
+    req.user = user;
         return next();
 
     } catch (error) {
