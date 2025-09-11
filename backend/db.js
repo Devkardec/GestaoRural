@@ -1,9 +1,13 @@
 // backend/db.js
-const admin = require('firebase-admin');
 
-// O admin já foi inicializado em server.js, aqui apenas pegamos a instância.
-const db = admin.firestore();
-const usersCollection = db.collection('users');
+let _db; // Will be set by initializeDb
+let _usersCollection; // Will be set by initializeDb
+
+// Function to initialize the db and usersCollection
+function initializeDb(dbInstance) {
+    _db = dbInstance;
+    _usersCollection = _db.collection('users');
+}
 
 /**
  * Cria um novo usuário no Firestore com período de trial.
@@ -12,7 +16,7 @@ const usersCollection = db.collection('users');
  * @returns {object} O novo usuário criado.
  */
 async function createUserWithTrial(uid, userData) {
-    const trialStartDate = admin.firestore.FieldValue.serverTimestamp();
+    const trialStartDate = _db.FieldValue.serverTimestamp();
     const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const newUser = {
@@ -22,14 +26,14 @@ async function createUserWithTrial(uid, userData) {
         premium: {
             status: 'TRIAL',
             trialStartDate: trialStartDate,
-            trialEndDate: admin.firestore.Timestamp.fromDate(trialEndDate),
+            trialEndDate: _db.Timestamp.fromDate(trialEndDate),
             subscriptionId: null,
             lastUpdate: trialStartDate,
             paymentLink: null
         }
     };
 
-    await usersCollection.doc(uid).set(newUser);
+    await _usersCollection.doc(uid).set(newUser);
     return newUser;
 }
 
@@ -38,7 +42,7 @@ async function createUserWithTrial(uid, userData) {
  * @param {string} uid - O UID do Firebase Authentication.
  */
 async function findUserByUID(uid) {
-    const userDoc = await usersCollection.doc(uid).get();
+    const userDoc = await _usersCollection.doc(uid).get();
     if (!userDoc.exists) {
         return null;
     }
@@ -50,7 +54,7 @@ async function findUserByUID(uid) {
  * @param {string} asaasCustomerId - O ID do cliente no Asaas (cus_...).
  */
 async function findUserByAsaasId(asaasCustomerId) {
-    const snapshot = await usersCollection.where('asaasCustomerId', '==', asaasCustomerId).limit(1).get();
+    const snapshot = await _usersCollection.where('asaasCustomerId', '==', asaasCustomerId).limit(1).get();
     if (snapshot.empty) {
         return null;
     }
@@ -64,14 +68,14 @@ async function findUserByAsaasId(asaasCustomerId) {
  * @param {object} dataToUpdate - Os campos a serem atualizados.
  */
 async function updateUser(uid, dataToUpdate) {
-    await usersCollection.doc(uid).update(dataToUpdate);
+    await _usersCollection.doc(uid).update(dataToUpdate);
     return findUserByUID(uid);
 }
 
 module.exports = {
+    initializeDb,
     createUserWithTrial,
     findUserByUID,
     findUserByAsaasId,
     updateUser,
-    db // Exporta a instância do db se precisar em outros lugares
 };

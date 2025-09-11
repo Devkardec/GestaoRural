@@ -35,7 +35,8 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
 
-initializeDb(admin); // Inicializa o módulo db com a instância do admin
+const db = admin.firestore(); // Initialize db here
+initializeDb(db); // Pass the initialized db to db.js
 
 const messaging = admin.messaging(); // Keep messaging if it's used elsewhere in server.js
 
