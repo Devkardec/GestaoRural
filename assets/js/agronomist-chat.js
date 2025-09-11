@@ -17,19 +17,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Function to add a message to the chat display
-    function addMessage(sender, message) {
+    function addMessage(sender, message, isTyping = false) {
         const messageElement = document.createElement('p');
         messageElement.classList.add('mb-2');
+
         if (sender === 'user') {
             messageElement.classList.add('text-right', 'text-blue-800');
             messageElement.innerHTML = `<strong>Você:</strong> ${message}`;
+            chatMessages.appendChild(messageElement);
         } else {
             messageElement.classList.add('text-left', 'text-gray-800');
-            // Usa a biblioteca marked para converter Markdown em HTML
-            const htmlContent = marked.parse(message);
-            messageElement.innerHTML = `<strong>Consultor:</strong> ${htmlContent}`;
+            const strong = document.createElement('strong');
+            strong.textContent = 'Consultor: ';
+            messageElement.appendChild(strong);
+
+            if (isTyping) {
+                const contentSpan = document.createElement('span');
+                messageElement.appendChild(contentSpan);
+                chatMessages.appendChild(messageElement);
+                
+                let i = 0;
+                const speed = 15; // Typing speed in milliseconds
+
+                function typeWriter() {
+                    if (i < message.length) {
+                        contentSpan.innerHTML += message.charAt(i);
+                        i++;
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        setTimeout(typeWriter, speed);
+                    } else {
+                        // Once typing is complete, parse the whole message as Markdown
+                        contentSpan.innerHTML = marked.parse(contentSpan.innerHTML);
+                    }
+                }
+                typeWriter();
+            } else {
+                const htmlContent = marked.parse(message);
+                messageElement.innerHTML = `<strong>Consultor:</strong> ${htmlContent}`;
+                chatMessages.appendChild(messageElement);
+            }
         }
-        chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
     }
 
@@ -65,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('agronomist-loading')?.remove();
 
                     if (response.ok) {
-                        addMessage('agronomist', data.response);
+                        addMessage('agronomist', data.response, true); // Enable typing effect
                     } else {
                         addMessage('agronomist', `Erro: ${data.details || 'Não foi possível obter uma resposta.'}`);
                     }
