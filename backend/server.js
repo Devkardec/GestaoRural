@@ -247,6 +247,37 @@ app.use((req, res, next) => {
     next();
 });
 
+// Reforço CORS final (caso algum fluxo saia antes do cors principal)
+app.use((req, res, next) => {
+    // Só adiciona se ainda não existe
+    if (!res.get('Access-Control-Allow-Origin')) {
+        res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+        res.header('Vary', 'Origin');
+        res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    }
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
+// Rota de debug para inspecionar cabeçalhos e origem (REMOVER em produção)
+app.get('/debug/cors', (req, res) => {
+    res.json({
+        receivedOrigin: req.headers.origin || null,
+        method: req.method,
+        path: req.path,
+        corsHeaders: {
+            'Access-Control-Allow-Origin': res.get('Access-Control-Allow-Origin') || null,
+            'Access-Control-Allow-Methods': res.get('Access-Control-Allow-Methods') || null,
+            'Access-Control-Allow-Headers': res.get('Access-Control-Allow-Headers') || null,
+            'Vary': res.get('Vary') || null
+        },
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Rotas do Asaas (definir ANTES do webhook para evitar conflitos)
 app.use('/asaas', asaasRoutes);
 
