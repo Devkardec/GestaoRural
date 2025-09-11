@@ -171,14 +171,14 @@
     <!-- Aplicação Principal (existente) -->
     <div id="app-container" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
         <header class="text-center mb-8 flex flex-col items-center">
-            <img src="assets/img/Capa2.png" alt="AgroCultive Logo" class="max-h-56 object-contain mx-auto mb-2">
-            <h3 style="color: darkgreen; font-weight: bold; font-size: 1.25rem; margin-bottom: 0.5rem; margin-top: 0;">Gerenciamento Rural Completo</h3>
-            <h2 style="color: darkgreen; font-weight: bold;">Facilitando Sua Vida No Campo</h2> <br>
-            <div class="flex items-center gap-4">
-                <span id="user-display-name" class="text-sm text-gray-600"></span>
+            <img src="assets/img/Capa2.png" alt="AgroCultive Logo" class="max-h-24 sm:max-h-32 object-contain mx-auto mb-4">
+            <h3 class="text-xl font-bold bg-gradient-to-r from-green-600 to-teal-500 text-transparent bg-clip-text">Gerenciamento Rural Completo</h3>
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-green-700 to-teal-600 text-transparent bg-clip-text mb-4">Facilitando Sua Vida No Campo</h2>
+            <div class="flex items-center gap-4 bg-gray-100 p-2 rounded-full shadow-inner">
+                <span id="user-display-name" class="text-sm font-semibold text-gray-700 pl-2"></span>
                 <button id="logout-btn"
-                    class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors">
-                    <i class="fas fa-sign-out-alt mr-1"></i> Sair
+                    class="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-sm hover:bg-red-200 hover:text-red-700 transition-colors flex items-center gap-1">
+                    <i class="fas fa-sign-out-alt"></i> Sair
                 </button>
             </div>
         </header>
