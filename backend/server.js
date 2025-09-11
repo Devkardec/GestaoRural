@@ -278,6 +278,52 @@ app.get('/debug/cors', (req, res) => {
     });
 });
 
+// ------------------------------------------------------------
+// ROTA INTERNA: Forçar ativação premium (uso emergencial)
+// Protegida por token secreto em variável de ambiente: ADMIN_FORCE_TOKEN
+// POST /internal/force-active  { token: 'SEGREDO', uid: 'UID_DO_USUARIO' }
+// ------------------------------------------------------------
+app.post('/internal/force-active', async (req, res) => {
+    try {
+        const secret = process.env.ADMIN_FORCE_TOKEN;
+        if (!secret) {
+            return res.status(500).json({ error: 'ADMIN_FORCE_TOKEN não configurado no servidor.' });
+        }
+        const { token, uid } = req.body || {};
+        if (!token || token !== secret) {
+            return res.status(403).json({ error: 'Token inválido.' });
+        }
+        if (!uid) {
+            return res.status(400).json({ error: 'UID é obrigatório.' });
+        }
+
+        // Busca usuário; se não existir, cria trial primeiro
+        const { findUserByUID, createUserWithTrial, updateUser } = require('./db');
+        let user = await findUserByUID(uid);
+        if (!user) {
+            user = await createUserWithTrial(uid, { email: null, name: 'Novo Usuário' });
+        }
+
+        const farFuture = new Date();
+        farFuture.setFullYear(farFuture.getFullYear() + 5); // +5 anos
+
+        await updateUser(uid, {
+            'premium.status': 'ACTIVE',
+            'premium.trialEndDate': admin.firestore.Timestamp.fromDate(farFuture),
+            'premium.lastUpdate': new Date()
+        });
+
+        return res.status(200).json({
+            message: 'Usuário promovido a ACTIVE',
+            uid,
+            expires: farFuture.toISOString()
+        });
+    } catch (err) {
+        console.error('Erro em /internal/force-active:', err);
+        return res.status(500).json({ error: 'Falha ao promover usuário.' });
+    }
+});
+
 // Rotas do Asaas (definir ANTES do webhook para evitar conflitos)
 app.use('/asaas', asaasRoutes);
 
