@@ -68,29 +68,41 @@ async function checkAuthAndPremium(req, res, next) {
  * Não bloqueia o acesso com base no status premium.
  */
 async function checkAuth(req, res, next) {
+    console.log('🔒 CheckAuth middleware called for:', req.method, req.path);
     const idToken = req.headers.authorization?.split('Bearer ')[1];
 
     if (!idToken) {
+        console.log('❌ No authorization token provided');
         return res.status(401).json({ error: 'Acesso não autorizado. Token não fornecido.' });
     }
 
     try {
+        console.log('🔍 Verifying Firebase token...');
         // 1. Verifica o token do Firebase
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         const uid = decodedToken.uid;
+        console.log('✅ Firebase token verified for user:', uid);
 
         // 2. Busca o usuário no Firestore
+        console.log('📂 Fetching user from database...');
         const user = await findUserByUID(uid);
         if (!user) {
+            console.log('❌ User not found in database for UID:', uid);
             return res.status(404).json({ error: 'Usuário não encontrado no banco de dados.' });
         }
+
+        console.log('✅ User found in database:', {
+            uid: user.uid,
+            email: user.email,
+            premiumStatus: user.premium?.status
+        });
 
         // 3. Anexa o usuário ao objeto da requisição para uso posterior
         req.user = user;
         return next();
 
     } catch (error) {
-        console.error('Erro de autenticação:', error);
+        console.error('❌ Authentication error:', error);
         if (error.code === 'auth/id-token-expired') {
             return res.status(401).json({ error: 'Token expirado. Por favor, faça login novamente.' });
         }

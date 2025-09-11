@@ -53,8 +53,36 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
 // Middleware
 // Usamos express.json() para a maioria das rotas
 app.use(express.json());
-// Configuração do CORS para permitir requisições do seu frontend
-app.use(cors({ origin: 'https://agrocultivegestaorural.com.br' }));
+
+// Configuração avançada do CORS
+const corsOptions = {
+    origin: [
+        'https://agrocultivegestaorural.com.br',
+        'http://localhost:3000',
+        'http://localhost:5000',
+        'http://127.0.0.1:5500'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
+// Middleware adicional para garantir headers CORS em todas as respostas
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || 'https://agrocultivegestaorural.com.br');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
 
 // O webhook do Asaas precisa do corpo bruto (raw) para verificar a assinatura.
 // Criamos um middleware que só se aplica à rota do webhook para capturar esse corpo.
@@ -72,19 +100,34 @@ const captureRawBody = (req, res, next) => {
 
 // --- Rotas da API ---
 
+// Health check route
+app.get('/health', (req, res) => {
+    console.log('🩺 Health check requested');
+    res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        server: 'AgrocultiveBackend',
+        version: '1.0.0'
+    });
+});
+
 const verifyFirebaseToken = async (req, res, next) => {
+    console.log('🔐 Verifying Firebase token for:', req.method, req.path);
     const idToken = req.headers.authorization?.split('Bearer ')[1];
 
     if (!idToken) {
+        console.log('❌ No token provided');
         return res.status(401).json({ error: 'Acesso não autorizado. Token não fornecido.' });
     }
 
     try {
+        console.log('🔍 Verifying token...');
         const decodedToken = await admin.auth().verifyIdToken(idToken);
+        console.log('✅ Token verified for user:', decodedToken.uid);
         req.uid = decodedToken.uid; // Attach uid to the request
         next();
     } catch (error) {
-        console.error('Erro ao verificar token:', error);
+        console.error('❌ Token verification failed:', error.message);
         return res.status(401).json({ error: 'Token inválido ou expirado.' });
     }
 };
@@ -194,6 +237,16 @@ app.post('/api/send-test-notification', async (req, res) => {
         console.error('Error sending test notification:', error);
         res.status(500).json({ error: 'Failed to send test notification.', details: error.message });
     }
+});
+
+// Middleware de logging para todas as requisições
+app.use((req, res, next) => {
+    console.log(`📝 ${new Date().toISOString()} - ${req.method} ${req.path}`, {
+        origin: req.headers.origin,
+        userAgent: req.headers['user-agent']?.substring(0, 50) + '...',
+        authorization: req.headers.authorization ? 'Bearer ***' : 'None'
+    });
+    next();
 });
 
 // Rotas do Asaas (definir ANTES do webhook para evitar conflitos)

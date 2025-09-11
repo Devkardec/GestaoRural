@@ -57,13 +57,25 @@ router.post('/subscription', async (req, res) => {
 // Rota para o frontend verificar o status do usuário.
 // Protegida pelo middleware `checkAuth` para garantir que apenas o usuário logado possa ver seu próprio status.
 router.get('/status', checkAuth, (req, res) => {
+    console.log('🎯 Status route accessed by user:', req.user.uid);
     // O middleware `checkAuth` já verificou o token e anexou o usuário a `req.user`.
     const user = req.user;
 
-    res.status(200).json({
-        premiumStatus: user.premium.status,
-        trialEndDate: user.premium.trialEndDate.toDate()
+    console.log('📊 User premium status:', {
+        status: user.premium.status,
+        trialEndDate: user.premium.trialEndDate
     });
+
+    try {
+        res.status(200).json({
+            premiumStatus: user.premium.status,
+            trialEndDate: user.premium.trialEndDate.toDate()
+        });
+        console.log('✅ Status response sent successfully');
+    } catch (error) {
+        console.error('❌ Error sending status response:', error);
+        res.status(500).json({ error: 'Erro interno ao buscar status.' });
+    }
 });
 
 // Exemplo de uma rota protegida pelo middleware

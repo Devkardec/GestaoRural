@@ -42,11 +42,25 @@ async function createUserWithTrial(uid, userData) {
  * @param {string} uid - O UID do Firebase Authentication.
  */
 async function findUserByUID(uid) {
-    const userDoc = await _usersCollection.doc(uid).get();
-    if (!userDoc.exists) {
-        return null;
+    console.log('🔍 Searching for user in database with UID:', uid);
+    try {
+        const userDoc = await _usersCollection.doc(uid).get();
+        if (!userDoc.exists) {
+            console.log('❌ User document not found for UID:', uid);
+            return null;
+        }
+        console.log('✅ User document found for UID:', uid);
+        const userData = { id: userDoc.id, ...userDoc.data() };
+        console.log('📄 User data retrieved:', {
+            uid: userData.uid,
+            email: userData.email,
+            premiumStatus: userData.premium?.status
+        });
+        return userData;
+    } catch (error) {
+        console.error('❌ Error fetching user from database:', error);
+        throw error;
     }
-    return { id: userDoc.id, ...userDoc.data() };
 }
 
 /**
