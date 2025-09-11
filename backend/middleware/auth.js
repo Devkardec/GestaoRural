@@ -1,7 +1,7 @@
 
 // backend/middleware/auth.js
 const admin = require('firebase-admin');
-const { findUserByUID, createUserWithTrial, normalizeUserIfNeeded } = require('../db');
+const { findUserByUID, createUserWithTrial, normalizeUserIfNeeded, updateUser } = require('../db');
 
 /**
  * Middleware para verificar o token de autenticação do Firebase
@@ -35,33 +35,43 @@ async function checkAuthAndPremium(req, res, next) {
         // Normalização (backfill de documentos antigos sem premium)
         user = await normalizeUserIfNeeded(user);
 
-        // 3. Anexa o usuário ao objeto da requisição para uso posterior
+        // 3. Bypass para administradores (lista em variável de ambiente ADMIN_UIDS=uid1,uid2,...)
+        const adminUids = (process.env.ADMIN_UIDS || '').split(',').map(s => s.trim()).filter(Boolean);
+        if (adminUids.includes(user.uid)) {
+            if (!user.premium || user.premium.status !== 'ACTIVE') {
+                try {
+                    await updateUser(user.uid, {
+                        'premium.status': 'ACTIVE',
+                        'premium.lastUpdate': new Date()
+                    });
+                    user.premium = { ...(user.premium || {}), status: 'ACTIVE' };
+                    console.log('👑 Admin promovido automaticamente a ACTIVE:', user.uid);
+                } catch (e) {
+                    console.warn('Não foi possível promover admin automaticamente agora:', e.message);
+                }
+            }
+            req.user = user;
+            return next();
+        }
+
+        // 4. Anexa o usuário normal à request
         req.user = user;
 
-        // MODO DE TESTE: Libera o acesso se a variável de ambiente estiver configurada
+        // 5. Modo aberto opcional
         if (process.env.ACCESS_CONTROL_MODE === 'open') {
             console.log(`AVISO: Servidor em modo de teste 'open'. Acesso liberado para o usuário: ${user.uid}`);
             return next();
         }
 
-        // 4. Verifica o status premium
+        // 6. Verifica status premium/trial
         const premiumStatus = user.premium.status;
-        const trialEndDate = user.premium.trialEndDate.toDate(); // Converte Timestamp para Date
-
+        const trialEndDate = user.premium.trialEndDate.toDate();
         const isTrialActive = premiumStatus === 'TRIAL' && new Date() < trialEndDate;
         const isPremiumActive = premiumStatus === 'ACTIVE';
+        if (isTrialActive || isPremiumActive) return next();
 
-        if (isTrialActive || isPremiumActive) {
-            // Se o trial está ativo ou o plano premium está pago, permite o acesso.
-            return next();
-        }
-
-        // 5. Se nenhuma condição for atendida, bloqueia o acesso.
-        // Retorna um status específico para o frontend saber que precisa de pagamento.
-        return res.status(403).json({
-            error: 'Acesso premium necessário.',
-            premiumStatus: 'INACTIVE'
-        });
+        // 7. Bloqueia se expirado/inativo
+        return res.status(403).json({ error: 'Acesso premium necessário.', premiumStatus: 'INACTIVE' });
 
     } catch (error) {
         console.error('Erro de autenticação ou verificação premium:', error);
