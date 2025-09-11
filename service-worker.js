@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'agrocultive-cache-v5'; // Versão do cache incrementada
+const CACHE_NAME = 'agrocultive-cache-v6'; // Versão do cache incrementada para forçar atualização
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -67,11 +67,16 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(
             fetch(event.request)
                 .then(response => {
-                    // Se a rede funcionar, clona a resposta, armazena em cache e a retorna
-                    const responseToCache = response.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, responseToCache);
-                    });
+                    // Verifica se a resposta é válida antes de clonar
+                    if (response && response.status === 200 && response.type === 'basic') {
+                        // Se a rede funcionar, clona a resposta, armazena em cache e a retorna
+                        const responseToCache = response.clone();
+                        caches.open(CACHE_NAME).then(cache => {
+                            cache.put(event.request, responseToCache);
+                        }).catch(err => {
+                            console.warn('Failed to cache response:', err);
+                        });
+                    }
                     return response;
                 })
                 .catch(() => {
@@ -93,12 +98,18 @@ self.addEventListener('fetch', (event) => {
                 // Se não, busca na rede
                 return fetch(event.request).then(networkResponse => {
                     // Armazena a nova resposta em cache para futuras requisições
-                    if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+                    if (networkResponse && networkResponse.status === 200 && 
+                        networkResponse.type === 'basic' && event.request.method === 'GET') {
                         caches.open(CACHE_NAME).then(cache => {
                             cache.put(event.request, networkResponse.clone());
+                        }).catch(err => {
+                            console.warn('Failed to cache network response:', err);
                         });
                     }
                     return networkResponse;
+                }).catch(fetchError => {
+                    console.warn('Network request failed:', fetchError);
+                    throw fetchError;
                 });
             })
             .catch(() => {

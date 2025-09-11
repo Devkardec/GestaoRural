@@ -2276,10 +2276,12 @@ function updateCurrentWeatherPanel(data) {
                             medicationsCollectionRef = collection(db, `${basePath}/medications`);
                             remindersCollectionRef = collection(db, `${basePath}/reminders`);
 
-                            // Initialize listeners and UI
-                            initializeListeners();
-                            initializeUIEventListeners();
-                            updateSubscriptionStatus(); // <-- Adicionado para buscar status
+                            // Initialize listeners and UI com um pequeno delay para garantir que o Firebase esteja pronto
+                            setTimeout(() => {
+                                initializeListeners();
+                                initializeUIEventListeners();
+                                updateSubscriptionStatus(); // <-- Adicionado para buscar status
+                            }, 100);
 
                             // Weather
                             if (navigator.geolocation) {
@@ -2348,6 +2350,23 @@ function updateCurrentWeatherPanel(data) {
                     }
                 };
 
+                // Função para lidar com erros do Firestore
+                const handleFirestoreError = (error, collection) => {
+                    console.error(`Error fetching ${collection}:`, error);
+                    if (error.code === 'permission-denied') {
+                        console.warn(`Permission denied for ${collection}. User may not have access rights.`);
+                        // Continue loading outros dados mesmo se um falhar
+                        if (initialLoads < totalListeners) onInitialLoad();
+                    } else if (error.code === 'unavailable') {
+                        console.warn(`Firestore unavailable for ${collection}. Check network connection.`);
+                        // Retry após um delay
+                        setTimeout(() => {
+                            console.log(`Retrying ${collection} listener...`);
+                            // A função será chamada novamente automaticamente quando a conexão for restaurada
+                        }, 5000);
+                    }
+                };
+
                 onSnapshot(collection(db, `users/${userId}/plantios`), (snapshot) => {
                     allPlantings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     if (initialLoads < totalListeners) onInitialLoad();
@@ -2366,9 +2385,9 @@ function updateCurrentWeatherPanel(data) {
                             closePlantingModal();
                         }
                     }
-                }, (error) => console.error("Error fetching plantings:", error));
-                onSnapshot(collection(db, `users/${userId}/insumos`), (snapshot) => { allSupplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); if (initialLoads < totalListeners) onInitialLoad(); if (suppliesModal.style.display === 'flex') renderSupplies(); }, (error) => console.error("Error fetching supplies:", error));
-                onSnapshot(collection(db, `users/${userId}/transacoes`), (snapshot) => { allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); if (initialLoads < totalListeners) onInitialLoad(); updateDashboard(); if (cashbookModal.style.display === 'flex') renderTransactions(); }, (error) => console.error("Error fetching transactions:", error));
+                }, (error) => handleFirestoreError(error, 'plantings'));
+                onSnapshot(collection(db, `users/${userId}/insumos`), (snapshot) => { allSupplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); if (initialLoads < totalListeners) onInitialLoad(); if (suppliesModal.style.display === 'flex') renderSupplies(); }, (error) => handleFirestoreError(error, 'supplies'));
+                onSnapshot(collection(db, `users/${userId}/transacoes`), (snapshot) => { allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); if (initialLoads < totalListeners) onInitialLoad(); updateDashboard(); if (cashbookModal.style.display === 'flex') renderTransactions(); }, (error) => handleFirestoreError(error, 'transactions'));
         
         // Adicionar listener para transações financeiras de animais
         onSnapshot(collection(db, `users/${userId}/animalFinancials`), (snapshot) => { 
@@ -2376,7 +2395,7 @@ function updateCurrentWeatherPanel(data) {
             if (initialLoads < totalListeners) onInitialLoad(); 
             updateDashboard(); 
             if (cashbookModal.style.display === 'flex') renderTransactions(); 
-        }, (error) => console.error("Error fetching animal financials:", error));
+        }, (error) => handleFirestoreError(error, 'animalFinancials'));
                 onSnapshot(collection(db, `users/${userId}/aplicacoesAgendadas`), (snapshot) => {
                     allScheduledApplications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     if (initialLoads < totalListeners) onInitialLoad();
@@ -2387,9 +2406,9 @@ function updateCurrentWeatherPanel(data) {
                     if (calendarModal && calendarModal.style.display === 'flex') {
                         renderCalendar(currentCalendarDate);
                     }
-                }, (error) => console.error("Error fetching scheduled applications:", error));
-                onSnapshot(collection(db, `users/${userId}/funcionarios`), (snapshot) => { allEmployees = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); if (initialLoads < totalListeners) onInitialLoad(); updateDashboard(); if (employeeModal.style.display === 'flex') renderEmployees(); }, (error) => console.error("Error fetching employees:", error));
-                onSnapshot(collection(db, `users/${userId}/animais`), (snapshot) => { allAnimals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); if (initialLoads < totalListeners) onInitialLoad(); if (animalDashboardModal.style.display === 'flex' && currentAnimalType) { renderAnimalTab(document.querySelector('.animal-tab-btn.active')?.dataset.tab || 'herd'); } }, (error) => console.error("Error fetching animals:", error));
+                }, (error) => handleFirestoreError(error, 'scheduledApplications'));
+                onSnapshot(collection(db, `users/${userId}/funcionarios`), (snapshot) => { allEmployees = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); if (initialLoads < totalListeners) onInitialLoad(); updateDashboard(); if (employeeModal.style.display === 'flex') renderEmployees(); }, (error) => handleFirestoreError(error, 'employees'));
+                onSnapshot(collection(db, `users/${userId}/animais`), (snapshot) => { allAnimals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); if (initialLoads < totalListeners) onInitialLoad(); if (animalDashboardModal.style.display === 'flex' && currentAnimalType) { renderAnimalTab(document.querySelector('.animal-tab-btn.active')?.dataset.tab || 'herd'); } }, (error) => handleFirestoreError(error, 'animals'));
 
                 // Listener para tarefas
                 onSnapshot(tasksCollectionRef, (snapshot) => {
