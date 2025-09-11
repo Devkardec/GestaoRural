@@ -3,6 +3,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
+const cors = require('cors'); // Importa o pacote cors
 const asaasRoutes = require('./asaas/routes');
 const asaasWebhook = require('./asaas/webhook');
 const { createUserWithTrial, initializeDb } = require('./db');
@@ -51,6 +52,8 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
 // Middleware
 // Usamos express.json() para a maioria das rotas
 app.use(express.json());
+// Configuração do CORS para permitir requisições do seu frontend
+app.use(cors({ origin: 'https://agrocultivegestaorural.com.br' }));
 
 // O webhook do Asaas precisa do corpo bruto (raw) para verificar a assinatura.
 // Criamos um middleware que só se aplica à rota do webhook para capturar esse corpo.
