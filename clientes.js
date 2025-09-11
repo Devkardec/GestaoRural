@@ -45,6 +45,7 @@ let isEditMode = false;
 let lastSaleData = null;
 let allClientDocs = [];
 let clientSearchTerm = "";
+let subscriptionChecked = false; // Flag para evitar verificações repetidas
 
 // ---------- DOM ----------
 const loadingIndicator = document.getElementById("loading-indicator");
@@ -135,6 +136,7 @@ function initializeClientsModule(){
   onAuthStateChanged(auth, (user)=>{
     if (user){
       currentUser = user;
+      checkSubscriptionStatus(); // <-- NOSSA NOVA VERIFICAÇÃO!
       hideLoading();
       ensureClientSearchBar();
       setupEvents();
@@ -147,6 +149,86 @@ function initializeClientsModule(){
 if (document.readyState === "loading"){
   document.addEventListener("DOMContentLoaded", initializeClientsModule);
 }else initializeClientsModule();
+
+// ---------- Lógica de Assinatura e Pagamento ----------
+async function checkSubscriptionStatus() {
+    if (subscriptionChecked) return; // Evita múltiplas verificações
+    subscriptionChecked = true;
+
+    const userRef = doc(db, "users", currentUser.uid);
+    const userSnap = await getDoc(userRef);
+    let userData = userSnap.exists() ? userSnap.data() : {};
+
+    let { subscriptionStatus, trialEndDate, trialStartDate } = userData;
+
+    const now = new Date();
+
+    // Se o usuário não tem dados de assinatura, iniciamos o teste de 7 dias
+    if (!subscriptionStatus) {
+        const startDate = now;
+        const endDate = new Date(now);
+        endDate.setDate(now.getDate() + 7);
+
+        await updateDoc(userRef, {
+            subscriptionStatus: 'trial',
+            trialStartDate: startDate.toISOString(),
+            trialEndDate: endDate.toISOString()
+        });
+        
+        subscriptionStatus = 'trial';
+        trialEndDate = endDate.toISOString();
+        
+        // Informa o usuário sobre o início do teste
+        showToast(`Você iniciou um período de teste de 7 dias.`, "success");
+    }
+
+    const trialEndDateObj = new Date(trialEndDate);
+
+    // Se o teste acabou e o status ainda é 'trial', muda para 'expired'
+    if (subscriptionStatus === 'trial' && now > trialEndDateObj) {
+        await updateDoc(userRef, { subscriptionStatus: 'expired' });
+        subscriptionStatus = 'expired';
+    }
+
+    // Se a assinatura expirou, bloqueia a tela
+    if (subscriptionStatus === 'expired') {
+        blockAccess();
+    }
+}
+
+function blockAccess() {
+    // Cria um overlay para bloquear a interação com a página
+    const overlay = document.createElement('div');
+    overlay.id = 'payment-block-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-align: center;
+    `;
+
+    overlay.innerHTML = `
+        <div style="background: white; color: black; padding: 40px; border-radius: 15px; max-width: 500px;">
+            <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Seu período de teste acabou!</h2>
+            <p style="margin-bottom: 25px;">Para continuar usando todas as funcionalidades do Agrocultive, por favor, realize o pagamento.</p>
+            <a href="premium.html" 
+               style="background-color: #28a745; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 18px;">
+               Fazer Assinatura
+            </a>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+}
+
 
 // ---------- Search bar ----------
 function ensureClientSearchBar(){
