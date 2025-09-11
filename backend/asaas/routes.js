@@ -54,6 +54,15 @@ router.post('/subscription', async (req, res) => {
     }
 });
 
+// Preflight explícito para status (camada adicional de compatibilidade)
+router.options('/status', (req,res)=> {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Vary','Origin');
+    res.header('Access-Control-Allow-Methods','GET,OPTIONS');
+    res.header('Access-Control-Allow-Headers','Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    return res.sendStatus(200);
+});
+
 // Rota para o frontend verificar o status do usuário.
 // Protegida pelo middleware `checkAuth` para garantir que apenas o usuário logado possa ver seu próprio status.
 router.get('/status', checkAuth, (req, res) => {

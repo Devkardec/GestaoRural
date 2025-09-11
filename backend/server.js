@@ -3,7 +3,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
-// const cors = require('cors'); // Removido - usando implementação customizada
+const cors = require('cors'); // Reativado para simplificar CORS
 const asaasRoutes = require('./asaas/routes');
 const asaasWebhook = require('./asaas/webhook');
 const { createUserWithTrial, initializeDb } = require('./db');
@@ -50,40 +50,36 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
     console.warn('As notificações Web Push podem não funcionar corretamente sem elas.');
 }
 
-// Middleware
-// Middleware CORS deve vir PRIMEIRO, antes de qualquer outra coisa
-app.use((req, res, next) => {
-    // Permite todas as origens durante o desenvolvimento/debugging
-    const allowedOrigins = [
-        'https://agrocultivegestaorural.com.br',
-        'http://localhost:3000',
-        'http://localhost:5000',
-        'http://127.0.0.1:5500'
-    ];
-    
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    } else {
-        // Fallback para o domínio principal
-        res.setHeader('Access-Control-Allow-Origin', 'https://agrocultivegestaorural.com.br');
-    }
-    
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
-    
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-        console.log('🔄 CORS Preflight request for:', req.path);
-        return res.status(200).end();
-    }
-    
-    next();
+// --- Middleware Base ---
+// CORS primeiro (modo permissivo para estabilizar)
+app.use(cors({
+    origin: (origin, callback) => {
+        // Permite chamadas sem origin (ex: curl) e qualquer origin listado.
+        const allowed = [
+            'https://agrocultivegestaorural.com.br',
+            'http://localhost:3000',
+            'http://localhost:5000',
+            'http://127.0.0.1:5500'
+        ];
+        if (!origin || allowed.includes(origin)) return callback(null, true);
+        return callback(null, true); // Temporariamente permite todos para diagnóstico
+    },
+    methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+    allowedHeaders: ['Content-Type','Authorization','X-Requested-With'],
+    credentials: false, // Não precisamos de cookies; facilita CORS
+    maxAge: 86400
+}));
+
+// Preflight explícito (garantia extra)
+app.options('*', (req,res) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Vary','Origin');
+    res.header('Access-Control-Allow-Methods','GET,POST,PUT,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers','Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    return res.sendStatus(200);
 });
 
-// Usamos express.json() DEPOIS do CORS
+// Body parsing
 app.use(express.json());
 
 // O webhook do Asaas precisa do corpo bruto (raw) para verificar a assinatura.
