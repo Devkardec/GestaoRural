@@ -57,13 +57,25 @@ self.addEventListener('activate', (event) => {
 
 // Evento de Fetch: Intercepta requisições de rede
 self.addEventListener('fetch', (event) => {
-    // Ignora requisições do Firebase, que têm seu próprio manejo offline.
+    // 1. Ignorar qualquer requisição que não seja GET (POST/PUT/DELETE/OPTIONS - inclusive preflight CORS)
+    if (event.request.method !== 'GET') {
+        return; // deixa seguir normalmente para a rede
+    }
+
+    // 2. Ignorar requisições cross-origin (ex: backend em onrender.com ou APIs externas)
+    const requestUrl = new URL(event.request.url);
+    const selfOrigin = self.location.origin;
+    if (requestUrl.origin !== selfOrigin) {
+        return; // não intercepta para não quebrar CORS
+    }
+
+    // 3. Ignora requisições do Firebase (caso sejam same-origin em algum cenário futuro)
     if (event.request.url.includes('firestore.googleapis.com')) {
         return; // Deixa a requisição passar para a rede
     }
 
     // Estratégia "Network First" para a página principal (index.html)
-    if (event.request.mode === 'navigate' && event.request.url.endsWith('/')) {
+    if (event.request.mode === 'navigate' && (event.request.url.endsWith('/') || event.request.url.endsWith('/index.html'))) {
         event.respondWith(
             fetch(event.request)
                 .then(response => {
@@ -87,7 +99,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Estratégia "Cache First" para outros assets
+    // Estratégia "Cache First" para outros assets same-origin GET
     event.respondWith(
         caches.match(event.request)
             .then(cachedResponse => {

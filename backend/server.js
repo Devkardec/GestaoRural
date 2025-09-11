@@ -3,7 +3,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
-const cors = require('cors'); // Importa o pacote cors
+// const cors = require('cors'); // Removido - usando implementação customizada
 const asaasRoutes = require('./asaas/routes');
 const asaasWebhook = require('./asaas/webhook');
 const { createUserWithTrial, initializeDb } = require('./db');
@@ -51,38 +51,40 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
 }
 
 // Middleware
-// Usamos express.json() para a maioria das rotas
-app.use(express.json());
-
-// Configuração avançada do CORS
-const corsOptions = {
-    origin: [
+// Middleware CORS deve vir PRIMEIRO, antes de qualquer outra coisa
+app.use((req, res, next) => {
+    // Permite todas as origens durante o desenvolvimento/debugging
+    const allowedOrigins = [
         'https://agrocultivegestaorural.com.br',
         'http://localhost:3000',
         'http://localhost:5000',
         'http://127.0.0.1:5500'
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-
-// Middleware adicional para garantir headers CORS em todas as respostas
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || 'https://agrocultivegestaorural.com.br');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    ];
     
-    if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
     } else {
-        next();
+        // Fallback para o domínio principal
+        res.setHeader('Access-Control-Allow-Origin', 'https://agrocultivegestaorural.com.br');
     }
+    
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        console.log('🔄 CORS Preflight request for:', req.path);
+        return res.status(200).end();
+    }
+    
+    next();
 });
+
+// Usamos express.json() DEPOIS do CORS
+app.use(express.json());
 
 // O webhook do Asaas precisa do corpo bruto (raw) para verificar a assinatura.
 // Criamos um middleware que só se aplica à rota do webhook para capturar esse corpo.
