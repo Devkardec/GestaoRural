@@ -3,6 +3,9 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
+const asaasRoutes = require('./asaas/routes');
+const asaasWebhook = require('./asaas/webhook');
+const { createUserWithTrial } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,9 +48,61 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
 }
 
 // Middleware
-app.use(bodyParser.json());
+// Usamos express.json() para a maioria das rotas
+app.use(express.json());
+
+// O webhook do Asaas precisa do corpo bruto (raw) para verificar a assinatura.
+// Criamos um middleware que só se aplica à rota do webhook para capturar esse corpo.
+const captureRawBody = (req, res, next) => {
+    let data = '';
+    req.setEncoding('utf8');
+    req.on('data', chunk => {
+        data += chunk;
+    });
+    req.on('end', () => {
+        req.rawBody = data;
+        next();
+    });
+};
 
 // --- Rotas da API ---
+
+const verifyFirebaseToken = async (req, res, next) => {
+    const idToken = req.headers.authorization?.split('Bearer ')[1];
+
+    if (!idToken) {
+        return res.status(401).json({ error: 'Acesso não autorizado. Token não fornecido.' });
+    }
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        req.uid = decodedToken.uid; // Attach uid to the request
+        next();
+    } catch (error) {
+        console.error('Erro ao verificar token:', error);
+        return res.status(401).json({ error: 'Token inválido ou expirado.' });
+    }
+};
+
+// Rota para criar o perfil de um novo usuário no Firestore com trial
+app.post('/api/create-user-profile', verifyFirebaseToken, async (req, res) => {
+    // O UID vem do token verificado, garantindo que o usuário só pode criar seu próprio perfil
+    const uid = req.uid;
+    const { email, name, cpfCnpj } = req.body;
+
+    if (!email || !name) {
+        return res.status(400).json({ error: 'Email e Nome são obrigatórios.' });
+    }
+
+    try {
+        const newUser = await createUserWithTrial(uid, { email, name, cpfCnpj });
+        console.log(`Perfil com trial criado para o usuário: ${uid}`);
+        res.status(201).json({ message: 'Perfil do usuário criado com sucesso.', user: newUser });
+    } catch (error) {
+        console.error('Erro ao criar perfil do usuário:', error);
+        res.status(500).json({ error: 'Falha ao criar o perfil do usuário.' });
+    }
+});
 
 // Rota para salvar a inscrição do usuário
 app.post('/api/save-subscription', async (req, res) => {
@@ -135,6 +190,12 @@ app.post('/api/send-test-notification', async (req, res) => {
         res.status(500).json({ error: 'Failed to send test notification.', details: error.message });
     }
 });
+
+// Rotas do Asaas
+app.use('/asaas', asaasRoutes);
+
+// A rota do webhook usa o middleware para capturar o corpo bruto ANTES de passar para o router do webhook.
+app.use('/asaas/webhook', captureRawBody, asaasWebhook);
 
 // Iniciar o servidor
 app.listen(PORT, () => {

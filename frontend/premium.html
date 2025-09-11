@@ -1,0 +1,33 @@
+<!-- frontend/premium.html -->
+<!-- Exemplo de integração do status premium na página -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Status Premium</title>
+  <script src="/frontend/js/premiumStatus.js"></script>
+  <script src="/frontend/js/apiPremium.js"></script>
+</head>
+<body>
+  <h2>Meu Plano Premium</h2>
+  <div id="premium-status">Carregando status...</div>
+  <script>
+    // Exemplo: obtém email do usuário logado (adapte conforme seu login)
+    const emailUsuario = localStorage.getItem('email');
+    async function atualizarStatusPremium() {
+      if (!emailUsuario) {
+        document.getElementById('premium-status').textContent = 'Faça login para ver seu plano.';
+        return;
+      }
+      const usuario = await obterUsuarioPremium(emailUsuario);
+      if (usuario) {
+        mostrarStatusPremium(usuario);
+        redirecionarSeBloqueado(usuario, usuario.linkPagamento);
+      } else {
+        document.getElementById('premium-status').textContent = 'Usuário não encontrado.';
+      }
+    }
+    atualizarStatusPremium();
+  </script>
+</body>
+</html>

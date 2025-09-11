@@ -1962,6 +1962,53 @@ function updateCurrentWeatherPanel(data) {
     costElement.textContent = formatCurrency(cost);
 };
 
+            // --- NOVO: FUNÇÃO PARA ATUALIZAR STATUS DA ASSINATURA ---
+            async function updateSubscriptionStatus() {
+                const statusElement = document.getElementById('subscription-status');
+                if (!statusElement) return;
+
+                try {
+                    const idToken = await auth.currentUser.getIdToken();
+                    const response = await fetch('/asaas/status', {
+                        headers: {
+                            'Authorization': `Bearer ${idToken}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        statusElement.textContent = 'Status Indisponível';
+                        statusElement.className = 'text-xs font-medium text-white bg-red-500 px-2 py-1 rounded-full';
+                        return;
+                    }
+
+                    const data = await response.json();
+                    
+                    if (data.premiumStatus === 'ACTIVE') {
+                        statusElement.textContent = 'Premium';
+                        statusElement.className = 'text-xs font-medium text-white bg-yellow-500 px-2 py-1 rounded-full';
+                    } else if (data.premiumStatus === 'TRIAL') {
+                        const endDate = new Date(data.trialEndDate);
+                        const now = new Date();
+                        const diffTime = endDate - now;
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (diffDays > 0) {
+                            statusElement.textContent = `Trial (${diffDays} dias restantes)`;
+                        } else {
+                            statusElement.textContent = 'Trial Expirado';
+                        }
+                        statusElement.className = 'text-xs font-medium text-white bg-blue-500 px-2 py-1 rounded-full';
+                    } else {
+                        statusElement.textContent = 'Plano Gratuito';
+                        statusElement.className = 'text-xs font-medium text-white bg-gray-500 px-2 py-1 rounded-full';
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar status da assinatura:', error);
+                    statusElement.textContent = 'Erro de Status';
+                    statusElement.className = 'text-xs font-medium text-white bg-red-500 px-2 py-1 rounded-full';
+                }
+            }
+
             // --- AUTHENTICATION FUNCTIONS ---
             function showLoginForm() {
                 document.getElementById('login-form').classList.remove('hidden');
@@ -2101,6 +2148,38 @@ function updateCurrentWeatherPanel(data) {
                         displayName: name
                     });
 
+                    // Chamar nosso backend para criar o perfil do usuário no Firestore com o trial
+                    try {
+                        const idToken = await userCredential.user.getIdToken();
+                        const response = await fetch('/api/create-user-profile', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${idToken}`
+                            },
+                            body: JSON.stringify({
+                                name: name,
+                                email: email
+                                // O backend espera `cpfCnpj`, mas não temos no formulário.
+                                // Como é opcional no backend, podemos omitir por enquanto.
+                            })
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Falha ao criar perfil no backend.');
+                        }
+
+                        const result = await response.json();
+                        console.log('Perfil criado no backend:', result.message);
+
+                    } catch (backendError) {
+                        console.error('Erro ao criar perfil no backend:', backendError);
+                        // O cadastro no Firebase Auth funcionou, mas o perfil no nosso DB falhou.
+                        // Isso pode exigir uma ação manual ou uma nova tentativa.
+                        showToast('Seu cadastro foi criado, mas houve um erro ao configurar seu perfil. Por favor, contacte o suporte.', 'error');
+                    }
+
                     showToast('Cadastro realizado com sucesso!');
                 } catch (error) {
                     console.error('Erro no cadastro:', error);
@@ -2197,6 +2276,7 @@ function updateCurrentWeatherPanel(data) {
                             // Initialize listeners and UI
                             initializeListeners();
                             initializeUIEventListeners();
+                            updateSubscriptionStatus(); // <-- Adicionado para buscar status
 
                             // Weather
                             if (navigator.geolocation) {
