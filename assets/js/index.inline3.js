@@ -1971,20 +1971,33 @@ function updateCurrentWeatherPanel(data) {
                 if (!statusElement) return;
 
                 try {
+                    if (!auth.currentUser) {
+                        console.warn('No user authenticated for status check');
+                        return;
+                    }
+
                     const idToken = await auth.currentUser.getIdToken();
+                    console.log('Fetching subscription status...', { userId: auth.currentUser.uid });
+                    
                     const response = await fetch(`${RENDER_BACKEND_URL}/asaas/status`, {
                         headers: {
-                            'Authorization': `Bearer ${idToken}`
+                            'Authorization': `Bearer ${idToken}`,
+                            'Content-Type': 'application/json'
                         }
                     });
 
+                    console.log('Status response:', { status: response.status, ok: response.ok });
+
                     if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Status check failed:', { status: response.status, error: errorText });
                         statusElement.textContent = 'Status Indisponível';
                         statusElement.className = 'text-xs font-medium text-white bg-red-500 px-2 py-1 rounded-full';
                         return;
                     }
 
                     const data = await response.json();
+                    console.log('Status data received:', data);
                     
                     if (data.premiumStatus === 'ACTIVE') {
                         statusElement.textContent = 'Premium';
@@ -2007,6 +2020,7 @@ function updateCurrentWeatherPanel(data) {
                     }
                 } catch (error) {
                     console.error('Erro ao buscar status da assinatura:', error);
+                    console.error('Error details:', { message: error.message, stack: error.stack });
                     statusElement.textContent = 'Erro de Status';
                     statusElement.className = 'text-xs font-medium text-white bg-red-500 px-2 py-1 rounded-full';
                 }
@@ -2250,8 +2264,12 @@ function updateCurrentWeatherPanel(data) {
                         });
 
                     onAuthStateChanged(auth, async (user) => {
+                        console.log('Auth state changed:', { user: user ? user.uid : null });
+                        
                         if (user) {
                             console.log("User is signed in:", user.uid);
+                            console.log("User email:", user.email);
+                            console.log("User email verified:", user.emailVerified);
                             userId = user.uid;
 
                             // Exibir nome do usuário
@@ -2264,6 +2282,8 @@ function updateCurrentWeatherPanel(data) {
 
                             // Setup collection references com path do usuário
                             const basePath = `users/${userId}`;
+                            console.log('Setting up collections for:', basePath);
+                            
                             plantingsCollectionRef = collection(db, `${basePath}/plantios`);
                             suppliesCollectionRef = collection(db, `${basePath}/insumos`);
                             transactionsCollectionRef = collection(db, `${basePath}/transacoes`);
@@ -2275,6 +2295,8 @@ function updateCurrentWeatherPanel(data) {
                             tasksCollectionRef = collection(db, `${basePath}/tasks`);
                             medicationsCollectionRef = collection(db, `${basePath}/medications`);
                             remindersCollectionRef = collection(db, `${basePath}/reminders`);
+
+                            console.log('Collections setup complete. Initializing listeners...');
 
                             // Initialize listeners and UI com um pequeno delay para garantir que o Firebase esteja pronto
                             setTimeout(() => {
@@ -2353,8 +2375,11 @@ function updateCurrentWeatherPanel(data) {
                 // Função para lidar com erros do Firestore
                 const handleFirestoreError = (error, collection) => {
                     console.error(`Error fetching ${collection}:`, error);
+                    console.log(`Error details - Code: ${error.code}, Message: ${error.message}`);
+                    
                     if (error.code === 'permission-denied') {
                         console.warn(`Permission denied for ${collection}. User may not have access rights.`);
+                        console.log(`User ID: ${userId}, Collection: users/${userId}/${collection}`);
                         // Continue loading outros dados mesmo se um falhar
                         if (initialLoads < totalListeners) onInitialLoad();
                     } else if (error.code === 'unavailable') {
@@ -2364,6 +2389,14 @@ function updateCurrentWeatherPanel(data) {
                             console.log(`Retrying ${collection} listener...`);
                             // A função será chamada novamente automaticamente quando a conexão for restaurada
                         }, 5000);
+                    } else if (error.code === 'unauthenticated') {
+                        console.error(`User not authenticated for ${collection}. Redirecting to login.`);
+                        // Forçar logout se não autenticado
+                        handleLogout();
+                    } else {
+                        console.error(`Unexpected error for ${collection}:`, error);
+                        // Continue tentando carregar outros dados
+                        if (initialLoads < totalListeners) onInitialLoad();
                     }
                 };
 

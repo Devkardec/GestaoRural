@@ -196,11 +196,11 @@ app.post('/api/send-test-notification', async (req, res) => {
     }
 });
 
-// A rota do webhook usa o middleware para capturar o corpo bruto ANTES de passar para o router do webhook.
-app.use('/asaas/webhook', captureRawBody, asaasWebhook);
-
-// Rotas do Asaas (devem vir DEPOIS do webhook para evitar conflitos)
+// Rotas do Asaas (definir ANTES do webhook para evitar conflitos)
 app.use('/asaas', asaasRoutes);
+
+// A rota do webhook usa o middleware para capturar o corpo bruto e deve ser mais específica
+app.use('/asaas/webhook', captureRawBody, asaasWebhook);
 
 // Iniciar o servidor
 app.listen(PORT, () => {

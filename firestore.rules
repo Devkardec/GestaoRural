@@ -1,0 +1,25 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regras para usuários - apenas o próprio usuário pode acessar seus dados
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Subcoleções do usuário
+      match /{subcollection=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Coleção de assinaturas (subscriptions) - para notificações push
+    match /subscriptions/{subscriptionId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Bloquear tudo que não estiver explicitamente permitido
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
