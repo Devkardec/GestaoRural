@@ -98,3 +98,50 @@ module.exports = {
     findUserByAsaasId,
     updateUser,
 };
+
+/**
+ * Normaliza a estrutura do usuário existente (backfill para documentos antigos)
+ * Garante presença de: uid, premium.status, premium.trialEndDate etc.
+ */
+async function normalizeUserIfNeeded(rawUser) {
+    if (!rawUser) return null;
+    const updates = {};
+    let needUpdate = false;
+
+    // uid ausente -> usar o id do documento
+    if (!rawUser.uid) {
+        updates.uid = rawUser.id;
+        needUpdate = true;
+    }
+
+    // premium ausente ou incompleto
+    if (!rawUser.premium || typeof rawUser.premium !== 'object') {
+        const trialStartDate = admin.firestore.FieldValue.serverTimestamp();
+        const trialEndDate = admin.firestore.Timestamp.fromDate(new Date(Date.now() + 7*24*60*60*1000));
+        updates.premium = {
+            status: 'TRIAL',
+            trialStartDate,
+            trialEndDate,
+            subscriptionId: null,
+            lastUpdate: trialStartDate,
+            paymentLink: null
+        };
+        needUpdate = true;
+    } else {
+        // Garantir campos internos
+        const p = rawUser.premium;
+        if (!p.status) { updates['premium.status'] = 'TRIAL'; needUpdate = true; }
+        if (!p.trialEndDate) { updates['premium.trialEndDate'] = admin.firestore.Timestamp.fromDate(new Date(Date.now()+7*24*60*60*1000)); needUpdate = true; }
+        if (!p.trialStartDate) { updates['premium.trialStartDate'] = admin.firestore.FieldValue.serverTimestamp(); needUpdate = true; }
+    }
+
+    if (needUpdate) {
+        await _usersCollection.doc(rawUser.id).set(updates, { merge: true });
+        // Recarrega
+        const refreshed = await _usersCollection.doc(rawUser.id).get();
+        return { id: refreshed.id, ...refreshed.data() };
+    }
+    return rawUser;
+}
+
+module.exports.normalizeUserIfNeeded = normalizeUserIfNeeded;

@@ -66,23 +66,26 @@ router.options('/status', (req,res)=> {
 // Rota para o frontend verificar o status do usuário.
 // Protegida pelo middleware `checkAuth` para garantir que apenas o usuário logado possa ver seu próprio status.
 router.get('/status', checkAuth, (req, res) => {
-    console.log('🎯 Status route accessed by user:', req.user.uid);
-    // O middleware `checkAuth` já verificou o token e anexou o usuário a `req.user`.
-    const user = req.user;
+    const user = req.user || {};
+    console.log('🎯 Status route accessed by user:', user.uid);
 
-    console.log('📊 User premium status:', {
-        status: user.premium.status,
-        trialEndDate: user.premium.trialEndDate
-    });
+    if (!user.premium) {
+        console.warn('⚠️ Usuário sem objeto premium – retornando default.');
+        return res.status(200).json({
+            premiumStatus: 'TRIAL',
+            trialEndDate: new Date(Date.now() + 7*24*60*60*1000)
+        });
+    }
 
     try {
+        const trialEnd = user.premium.trialEndDate?.toDate ? user.premium.trialEndDate.toDate() : new Date();
         res.status(200).json({
-            premiumStatus: user.premium.status,
-            trialEndDate: user.premium.trialEndDate.toDate()
+            premiumStatus: user.premium.status || 'TRIAL',
+            trialEndDate: trialEnd
         });
         console.log('✅ Status response sent successfully');
-    } catch (error) {
-        console.error('❌ Error sending status response:', error);
+    } catch (err) {
+        console.error('❌ Error sending status response:', err);
         res.status(500).json({ error: 'Erro interno ao buscar status.' });
     }
 });

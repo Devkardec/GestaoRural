@@ -1,7 +1,7 @@
 
 // backend/middleware/auth.js
 const admin = require('firebase-admin');
-const { findUserByUID, createUserWithTrial } = require('../db');
+const { findUserByUID, createUserWithTrial, normalizeUserIfNeeded } = require('../db');
 
 /**
  * Middleware para verificar o token de autenticação do Firebase
@@ -31,6 +31,9 @@ async function checkAuthAndPremium(req, res, next) {
                 return res.status(500).json({ error: 'Falha ao criar perfil do usuário.' });
             }
         }
+
+        // Normalização (backfill de documentos antigos sem premium)
+        user = await normalizeUserIfNeeded(user);
 
         // 3. Anexa o usuário ao objeto da requisição para uso posterior
         req.user = user;
@@ -98,7 +101,7 @@ async function checkAuth(req, res, next) {
             return res.status(404).json({ error: 'Usuário não encontrado no banco de dados.' });
         }
 
-        console.log('✅ User found in database:', {
+        console.log('✅ User found in database (normalizado):', {
             uid: user.uid,
             email: user.email,
             premiumStatus: user.premium?.status
