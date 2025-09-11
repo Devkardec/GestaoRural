@@ -10,7 +10,7 @@
         }
 
         // Firebase Imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
         import {
             getAuth,
             createUserWithEmailAndPassword,
@@ -19,7 +19,7 @@
             onAuthStateChanged,
             updateProfile,
             sendPasswordResetEmail
-        } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js";
+        } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
         import {
             getFirestore,
             collection,
@@ -39,8 +39,8 @@
             getDoc,
             enableIndexedDbPersistence
         } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-messaging-compat.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-messaging.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
         // NOVO: Chave pública VAPID (substitua pela sua chave gerada no backend)
         const FRONTEND_VAPID_PUBLIC_KEY = 'BAvz0_E24ZW7r7nU_ZjCld-G7N7qQ5jRk2hoTMAH3Uqr0X90NzFD6y34KYgQ3xFQcN786kDNou-lhq_cRqOcED8';
