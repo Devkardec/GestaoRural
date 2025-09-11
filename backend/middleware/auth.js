@@ -36,7 +36,11 @@ async function checkAuthAndPremium(req, res, next) {
         user = await normalizeUserIfNeeded(user);
 
         // 3. Bypass para administradores (lista em variável de ambiente ADMIN_UIDS=uid1,uid2,...)
-        const adminUids = (process.env.ADMIN_UIDS || '').split(',').map(s => s.trim()).filter(Boolean);
+        let adminUids = (process.env.ADMIN_UIDS || '').split(',').map(s => s.trim()).filter(Boolean);
+        // Fallback hardcoded (REMOVER depois) para ajudar o dono enquanto não configura env
+        if (adminUids.length === 0) {
+            adminUids = ['W5luXYrJD3dQFMa4otcXZxRk0rk1'];
+        }
         if (adminUids.includes(user.uid)) {
             if (!user.premium || user.premium.status !== 'ACTIVE') {
                 try {

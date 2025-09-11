@@ -324,6 +324,30 @@ app.post('/internal/force-active', async (req, res) => {
     }
 });
 
+// Ativação simples para o próprio dono (sem token secreto) - exige autenticação Firebase
+// POST /internal/activate-self  (Authorization: Bearer <idToken>)
+// Se o uid for o do administrador fallback, promove a ACTIVE.
+app.post('/internal/activate-self', verifyFirebaseToken, async (req, res) => {
+    const OWNER_UID = 'W5luXYrJD3dQFMa4otcXZxRk0rk1'; // Fallback hardcoded (REMOVER em produção final)
+    try {
+        if (req.uid !== OWNER_UID) {
+            return res.status(403).json({ error: 'Apenas o dono pode usar esta rota.' });
+        }
+        const { updateUser } = require('./db');
+        const farFuture = new Date();
+        farFuture.setFullYear(farFuture.getFullYear() + 5);
+        await updateUser(req.uid, {
+            'premium.status': 'ACTIVE',
+            'premium.trialEndDate': admin.firestore.Timestamp.fromDate(farFuture),
+            'premium.lastUpdate': new Date()
+        });
+        return res.json({ message: 'Conta ativada como ACTIVE', uid: req.uid, until: farFuture.toISOString() });
+    } catch (e) {
+        console.error('Erro em /internal/activate-self:', e);
+        return res.status(500).json({ error: 'Falha ao ativar.' });
+    }
+});
+
 // Rotas do Asaas (definir ANTES do webhook para evitar conflitos)
 app.use('/asaas', asaasRoutes);
 
