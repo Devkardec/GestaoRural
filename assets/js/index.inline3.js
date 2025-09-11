@@ -38,7 +38,7 @@
             setDoc,
             getDoc,
             enableIndexedDbPersistence
-        } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js";
+        } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-messaging-compat.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js";
 

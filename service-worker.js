@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'agrocultive-cache-v4'; // Versão do cache incrementada
+const CACHE_NAME = 'agrocultive-cache-v5'; // Versão do cache incrementada
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -59,31 +59,54 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     // Ignora requisições do Firebase, que têm seu próprio manejo offline.
     if (event.request.url.includes('firestore.googleapis.com')) {
+        return; // Deixa a requisição passar para a rede
+    }
+
+    // Estratégia "Network First" para a página principal (index.html)
+    if (event.request.mode === 'navigate' && event.request.url.endsWith('/')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    // Se a rede funcionar, clona a resposta, armazena em cache e a retorna
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(event.request, responseToCache);
+                    });
+                    return response;
+                })
+                .catch(() => {
+                    // Se a rede falhar, tenta servir do cache
+                    return caches.match(event.request);
+                })
+        );
         return;
     }
-    
-    event.respondWith(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.match(event.request)
-                .then((cachedResponse) => {
-                    // Stale-While-Revalidate: Serve do cache e atualiza em segundo plano.
-                    const fetchPromise = fetch(event.request).then((networkResponse) => {
-                        // Apenas armazena em cache requisições GET bem-sucedidas.
-                        if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
-                            cache.put(event.request, networkResponse.clone());
-                        }
-                        return networkResponse;
-                    }).catch(() => {
-                        // Se a rede falhar e não houver cache, serve a página offline.
-                        if (event.request.mode === 'navigate') {
-                            return caches.match('/offline.html');
-                        }
-                    });
 
-                    // Retorna a resposta do cache imediatamente se existir, senão aguarda a rede.
-                    return cachedResponse || fetchPromise;
+    // Estratégia "Cache First" para outros assets
+    event.respondWith(
+        caches.match(event.request)
+            .then(cachedResponse => {
+                // Se estiver no cache, retorna a resposta do cache
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                // Se não, busca na rede
+                return fetch(event.request).then(networkResponse => {
+                    // Armazena a nova resposta em cache para futuras requisições
+                    if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+                        caches.open(CACHE_NAME).then(cache => {
+                            cache.put(event.request, networkResponse.clone());
+                        });
+                    }
+                    return networkResponse;
                 });
-        })
+            })
+            .catch(() => {
+                // Se tudo falhar (sem cache, sem rede), serve a página offline para navegação
+                if (event.request.mode === 'navigate') {
+                    return caches.match('/offline.html');
+                }
+            })
     );
 });
 
