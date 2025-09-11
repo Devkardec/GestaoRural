@@ -4,7 +4,6 @@ const express = require('express');
 const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
 const cors = require('cors'); // Importa o pacote cors
-const cors = require('cors'); // Importa o pacote cors
 const asaasRoutes = require('./asaas/routes');
 const asaasWebhook = require('./asaas/webhook');
 const { createUserWithTrial, initializeDb } = require('./db');
@@ -53,8 +52,6 @@ if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
 // Middleware
 // Usamos express.json() para a maioria das rotas
 app.use(express.json());
-// Configuração do CORS para permitir requisições do seu frontend
-app.use(cors({ origin: 'https://agrocultivegestaorural.com.br' }));
 // Configuração do CORS para permitir requisições do seu frontend
 app.use(cors({ origin: 'https://agrocultivegestaorural.com.br' }));
 
@@ -184,7 +181,7 @@ app.post('/api/send-test-notification', async (req, res) => {
         // Se você estiver usando o FCM para Android/iOS, o token seria o registration token do dispositivo.
         // Para Web Push, o FCM pode usar o endpoint diretamente como token.
         // No entanto, o Admin SDK espera um 'token' ou 'topic' ou 'condition'.
-        // Para Web Push, o 'endpoint' da inscrição é o que o FCM usa como 'token'.
+        // Para Web Push, o FCM pode usar o endpoint diretamente como token.
         // A biblioteca 'web-push' lida com isso automaticamente, mas com o Admin SDK, é mais direto.
         // Para simplificar, vamos usar o endpoint como o token para o FCM.
         message.token = subscription.endpoint; // Usar o endpoint como token para FCM Web Push
