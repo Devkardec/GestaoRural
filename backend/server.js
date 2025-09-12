@@ -211,7 +211,7 @@ app.post('/api/send-webpush', express.json(), async (req, res) => {
                 tag: type || 'generic',
                 icon: ABS_ICON,
                 badge: ABS_ICON,
-                vibrate: [100, 50, 100],
+                vibrate: [120, 40, 120],
                 requireInteraction: false,
                 timestamp: Date.now(),
                 data: { url: url || '/', type: type || 'generic', refId: refId || null }

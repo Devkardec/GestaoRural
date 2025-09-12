@@ -195,7 +195,7 @@ self.addEventListener('push', (event) => {
         icon: n.icon || iconMap[type] || baseIcon,
         badge: n.badge || baseIcon,
         tag: n.tag || type,
-        vibrate: n.vibrate || [100,50,100],
+    vibrate: n.vibrate || [120,40,120],
         requireInteraction: false,
         timestamp: Date.now(),
         data: {
