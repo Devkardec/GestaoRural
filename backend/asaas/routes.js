@@ -104,7 +104,9 @@ router.get('/status', checkAuth, async (req, res) => {
         const payload = {
             premiumStatus: status,
             trialEndDate,
-            daysRemaining: daysRemaining < 0 ? 0 : daysRemaining
+            daysRemaining: daysRemaining < 0 ? 0 : daysRemaining,
+            paymentLink: user?.premium?.paymentLink || null,
+            subscriptionId: user?.premium?.subscriptionId || null
         };
         console.log('📊 Status payload:', payload);
         return res.status(200).json(payload);
@@ -146,6 +148,37 @@ router.get('/payment-link', checkAuth, async (req, res) => {
     } catch (e) {
         console.error('Erro em /asaas/payment-link:', e);
         return res.status(500).json({ error: 'Falha ao obter link de pagamento.' });
+    }
+});
+
+// Rota consolidada de perfil Asaas/Premium
+router.get('/me', checkAuth, async (req, res) => {
+    try {
+        const u = req.user;
+        const trialEndDate = u?.premium?.trialEndDate?.toDate ? u.premium.trialEndDate.toDate() : null;
+        const now = new Date();
+        let status = u?.premium?.status || 'TRIAL';
+        let daysRemaining = 0;
+        if (trialEndDate) {
+            daysRemaining = Math.ceil((trialEndDate - now)/86400000);
+            if (status === 'TRIAL' && daysRemaining < 0) {
+                status = 'INACTIVE';
+                daysRemaining = 0;
+            }
+        }
+        return res.json({
+            uid: u.uid,
+            email: u.email || null,
+            premiumStatus: status,
+            daysRemaining: daysRemaining < 0 ? 0 : daysRemaining,
+            trialEndDate,
+            paymentLink: u?.premium?.paymentLink || null,
+            subscriptionId: u?.premium?.subscriptionId || null,
+            asaasCustomerId: u?.asaasCustomerId || null
+        });
+    } catch (e) {
+        console.error('Erro em /asaas/me:', e);
+        return res.status(500).json({ error: 'Falha ao obter perfil.' });
     }
 });
 

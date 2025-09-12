@@ -79,13 +79,40 @@ async function criarOuObterLinkPagamento(plan) {
   }
 }
 
-// Inicialização simples
+const PLANOS = {
+  YEARLY: { value: 49.90, description: 'Plano Premium - AgroCultive (Anual)', cycle: 'YEARLY' },
+  MONTHLY: { value: 9.90, description: 'Plano Premium - AgroCultive (Mensal)', cycle: 'MONTHLY' }
+};
+
+async function carregarStatusAtual() {
+  const statusEl = document.getElementById('dynamic-premium-status');
+  const daysEl = document.getElementById('dynamic-days-remaining');
+  try {
+    const idToken = await obterIdToken();
+    if (!idToken) return;
+    const resp = await fetch(`${BACKEND_BASE}/asaas/status`, { headers: { 'Authorization': 'Bearer ' + idToken } });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    if (statusEl) statusEl.textContent = `Status: ${data.premiumStatus}`;
+    if (daysEl && typeof data.daysRemaining === 'number') {
+      if (data.premiumStatus === 'TRIAL') daysEl.textContent = `Dias restantes de teste: ${data.daysRemaining}`;
+      else if (data.premiumStatus === 'ACTIVE') daysEl.textContent = 'Assinatura ativa.';
+      else daysEl.textContent = '';
+    }
+  } catch (e) {
+    console.warn('Falha ao carregar status:', e.message);
+  }
+}
+
+// Substitui criação fixa por seleção
 window.initPremiumDynamic = function() {
   const btn = document.getElementById('dynamic-premium-btn');
-  if (!btn) return;
-  btn.addEventListener('click', () => {
-    // Definir plano fixo anual ou mensal
-    const plan = { value: 49.90, description: 'Plano Premium - AgroCultive', cycle: 'YEARLY' };
-    criarOuObterLinkPagamento(plan);
-  });
+  const select = document.getElementById('dynamic-plan-select');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const planKey = (select && select.value) || 'YEARLY';
+      criarOuObterLinkPagamento(PLANOS[planKey]);
+    });
+  }
+  carregarStatusAtual();
 };
