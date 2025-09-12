@@ -2000,14 +2000,14 @@ function updateCurrentWeatherPanel(data) {
                     console.log('Status data received:', data);
                     
                     if (data.premiumStatus === 'ACTIVE') {
-                        statusElement.textContent = 'Premium';
+                        statusElement.textContent = 'Ativo';
                         statusElement.className = 'text-xs font-medium text-white bg-yellow-500 px-2 py-1 rounded-full';
                     } else if (data.premiumStatus === 'TRIAL') {
                         const dr = typeof data.daysRemaining === 'number' ? data.daysRemaining : (() => {
                             const endDate = new Date(data.trialEndDate);
                             return Math.max(0, Math.ceil((endDate - new Date()) / 86400000));
                         })();
-                        statusElement.textContent = dr > 0 ? `Trial (${dr} dias)` : 'Trial Expirado';
+                        statusElement.textContent = dr > 0 ? `Teste (${dr} dias)` : 'Teste Expirado';
                         statusElement.className = 'text-xs font-medium text-white bg-blue-500 px-2 py-1 rounded-full';
                     } else if (data.premiumStatus === 'INACTIVE') {
                         statusElement.textContent = 'Inativo';
@@ -2034,7 +2034,8 @@ function updateCurrentWeatherPanel(data) {
                 const days = document.getElementById('premium-days-remaining');
                 const line = document.getElementById('premium-status-line');
                 if (data) {
-                    current.textContent = data.premiumStatus || '--';
+                    const labelMap = { 'ACTIVE': 'Ativo', 'TRIAL': 'Teste', 'INACTIVE': 'Inativo' };
+                    current.textContent = labelMap[data.premiumStatus] || (data.premiumStatus || '--');
                     const dr = typeof data.daysRemaining === 'number' ? data.daysRemaining : '--';
                     days.textContent = dr;
                     line.textContent = data.premiumStatus === 'ACTIVE'
@@ -2213,7 +2214,7 @@ function updateCurrentWeatherPanel(data) {
                         displayName: name
                     });
 
-                    // Chamar nosso backend para criar o perfil do usuário no Firestore com o trial
+                    // Chamar nosso backend para criar o perfil do usuário no Firestore com o período de teste
                     try {
                         const idToken = await userCredential.user.getIdToken();
                         const response = await fetch(`${RENDER_BACKEND_URL}/api/create-user-profile`, {

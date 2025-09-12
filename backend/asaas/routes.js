@@ -100,7 +100,7 @@ router.get('/status', checkAuth, async (req, res) => {
                     'premium.status': status,
                     'premium.lastUpdate': new Date()
                 });
-                console.log(`⏳ Trial expirado. Usuário ${user.uid} marcado como INACTIVE.`);
+                console.log(`⏳ Teste expirado. Usuário ${user.uid} marcado como INACTIVE.`);
             } catch (uErr) {
                 console.warn('Não foi possível atualizar status expirado agora:', uErr.message);
             }
@@ -218,7 +218,7 @@ if (process.env.NODE_ENV !== 'production') {
                 'premium.trialEndDate': admin.firestore.Timestamp.fromDate(farFuture),
                 'premium.lastUpdate': new Date()
             });
-            return res.json({ message: 'Simulação aplicada: ACTIVE', uid, until: farFuture.toISOString() });
+            return res.json({ message: 'Simulação aplicada: Ativo', uid, until: farFuture.toISOString() });
         } catch (e) {
             console.error('Erro em /asaas/simulate-payment:', e);
             return res.status(500).json({ error: 'Falha na simulação.' });

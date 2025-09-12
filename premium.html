@@ -212,8 +212,8 @@
                                     </a>
                                     <div class="w-full max-w-md bg-white bg-opacity-20 p-4 rounded-2xl text-left text-white text-sm leading-relaxed">
                                         <strong>Como funciona o teste de 7 dias:</strong><br>
-                                        1. Você inicia com status TRIAL automaticamente.<br>
-                                        2. Ao completar 7 dias sem pagamento seu acesso premium vira INACTIVE.<br>
+                                        1. Você inicia com status Teste automaticamente.<br>
+                                        2. Ao completar 7 dias sem pagamento seu acesso premium vira INATIVO.<br>
                                         3. Depois de pagar pelo link acima seu acesso é ativado manualmente (ou pelo webhook quando finalizarmos).<br>
                                         <br>
                                         <em>Este link é fixo e serve para todos. Depois de confirmar o pagamento você poderá ser ativado.</em>
@@ -370,7 +370,7 @@
                         lock(true); setMsg('Criando conta...');
                         try {
                             await firebase.auth().createUserWithEmailAndPassword(email, pass);
-                            setMsg('Conta criada (trial ativo)', true);
+                            setMsg('Conta criada (teste ativo)', true);
                         } catch(e){ console.error('Create user error', e); setMsg(e.message); }
                         finally { lock(false); }
                     });

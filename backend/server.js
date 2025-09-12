@@ -130,7 +130,7 @@ const verifyFirebaseToken = async (req, res, next) => {
     }
 };
 
-// Rota para criar o perfil de um novo usuário no Firestore com trial
+// Rota para criar o perfil de um novo usuário no Firestore com período de teste
 app.post('/api/create-user-profile', verifyFirebaseToken, async (req, res) => {
     // O UID vem do token verificado, garantindo que o usuário só pode criar seu próprio perfil
     const uid = req.uid;
@@ -142,7 +142,7 @@ app.post('/api/create-user-profile', verifyFirebaseToken, async (req, res) => {
 
     try {
         const newUser = await createUserWithTrial(uid, { email, name, cpfCnpj });
-        console.log(`Perfil com trial criado para o usuário: ${uid}`);
+    console.log(`Perfil com teste criado para o usuário: ${uid}`);
         res.status(201).json({ message: 'Perfil do usuário criado com sucesso.', user: newUser });
     } catch (error) {
         console.error('Erro ao criar perfil do usuário:', error);
@@ -303,7 +303,7 @@ app.post('/internal/force-active', async (req, res) => {
             return res.status(400).json({ error: 'UID é obrigatório.' });
         }
 
-        // Busca usuário; se não existir, cria trial primeiro
+    // Busca usuário; se não existir, cria perfil de teste primeiro
         const { findUserByUID, createUserWithTrial, updateUser } = require('./db');
         let user = await findUserByUID(uid);
         if (!user) {
@@ -320,7 +320,7 @@ app.post('/internal/force-active', async (req, res) => {
         });
 
         return res.status(200).json({
-            message: 'Usuário promovido a ACTIVE',
+            message: 'Usuário promovido a Ativo',
             uid,
             expires: farFuture.toISOString()
         });
@@ -347,7 +347,7 @@ app.post('/internal/activate-self', verifyFirebaseToken, async (req, res) => {
             'premium.trialEndDate': admin.firestore.Timestamp.fromDate(farFuture),
             'premium.lastUpdate': new Date()
         });
-        return res.json({ message: 'Conta ativada como ACTIVE', uid: req.uid, until: farFuture.toISOString() });
+    return res.json({ message: 'Conta ativada como Ativa', uid: req.uid, until: farFuture.toISOString() });
     } catch (e) {
         console.error('Erro em /internal/activate-self:', e);
         return res.status(500).json({ error: 'Falha ao ativar.' });
@@ -379,7 +379,7 @@ app.post('/internal/premium/reactivate', async (req, res) => {
             'premium.trialEndDate': admin.firestore.Timestamp.fromDate(future),
             'premium.lastUpdate': new Date()
         });
-        return res.json({ message: 'Usuário reativado como ACTIVE', uid, until: future.toISOString() });
+    return res.json({ message: 'Usuário reativado como Ativo', uid, until: future.toISOString() });
     } catch (e) {
         console.error('Erro em /internal/premium/reactivate:', e);
         return res.status(500).json({ error: 'Falha ao reativar.' });
@@ -403,10 +403,10 @@ app.post('/internal/premium/reset-trial', async (req, res) => {
             'premium.trialEndDate': admin.firestore.Timestamp.fromDate(end),
             'premium.lastUpdate': new Date()
         });
-        return res.json({ message: 'Trial redefinido', uid, trialEnds: end.toISOString(), days });
+    return res.json({ message: 'Teste redefinido', uid, trialEnds: end.toISOString(), days });
     } catch (e) {
         console.error('Erro em /internal/premium/reset-trial:', e);
-        return res.status(500).json({ error: 'Falha ao resetar trial.' });
+    return res.status(500).json({ error: 'Falha ao resetar teste.' });
     }
 });
 
