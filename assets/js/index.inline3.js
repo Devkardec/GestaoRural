@@ -66,7 +66,7 @@
             if (!auth?.currentUser) { console.warn('sendSubscriptionToServer sem usuário logado. Abortando.'); return; }
             console.log('Enviando inscrição para o servidor (endpoint):', subscription?.endpoint);
             try {
-                const response = await fetch('/.netlify/functions/save-subscription', {
+                const response = await fetch(`${RENDER_BACKEND_URL}/api/save-subscription`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ subscription, userId: auth.currentUser.uid }),
@@ -2447,7 +2447,7 @@ function updateCurrentWeatherPanel(data) {
                                     try {
                                         if (!auth.currentUser) return alert('Usuário não logado');
                                         await ensurePushSubscription();
-                                        const res = await fetch('/.netlify/functions/send-webpush', {
+                                        const res = await fetch(`${RENDER_BACKEND_URL}/api/send-webpush`, {
                                             method: 'POST',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify({

@@ -40,6 +40,19 @@ initializeDb(db); // Pass the initialized db to db.js
 
 const messaging = admin.messaging(); // Keep messaging if it's used elsewhere in server.js
 
+// --- Web Push local (alternativa ao Netlify) ---
+const webpush = require('web-push');
+function ensureVapidLocal() {
+    if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+        throw new Error('VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY ausentes no backend (Render).');
+    }
+    webpush.setVapidDetails(
+        process.env.VAPID_SUBJECT || 'mailto:suporte@agrocultive.com',
+        process.env.VAPID_PUBLIC_KEY,
+        process.env.VAPID_PRIVATE_KEY
+    );
+}
+
 // --- Configuração das Chaves VAPID ---
 // IMPORTANTE: Use variáveis de ambiente para suas chaves VAPID!
 // process.env.VAPID_PUBLIC_KEY (já está no frontend)
@@ -175,6 +188,37 @@ app.post('/api/save-subscription', async (req, res) => {
     } catch (error) {
         console.error('Error saving subscription:', error);
         res.status(500).json({ error: 'Failed to save subscription.' });
+    }
+});
+
+// Envio de Web Push direto pelo backend (Render)
+app.post('/api/send-webpush', async (req, res) => {
+    if (!req.body) return res.status(400).json({ error: 'Body ausente' });
+    const { userId, title, body, url, type, refId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId é obrigatório' });
+    try {
+        ensureVapidLocal();
+        const subDoc = await db.collection('subscriptions').doc(userId).get();
+        if (!subDoc.exists) return res.status(404).json({ error: 'Subscription não encontrada para userId.' });
+        const subscription = subDoc.data();
+        const payload = {
+            notification: {
+                title: title || 'AgroCultive',
+                body: body || 'Você tem uma nova atualização.',
+                tag: type || 'generic',
+                icon: 'assets/img/faviconsf.png',
+                badge: 'assets/img/faviconsf.png',
+                data: { url: url || '/', type: type || 'generic', refId: refId || null }
+            }
+        };
+        await webpush.sendNotification(subscription, JSON.stringify(payload));
+        return res.json({ success: true });
+    } catch (e) {
+        console.error('Falha ao enviar push local:', e?.statusCode, e?.message);
+        if (e?.statusCode === 410 || e?.statusCode === 404) {
+            try { await db.collection('subscriptions').doc(userId).delete(); } catch(_){ }
+        }
+        return res.status(500).json({ error: 'Falha ao enviar push', details: e.message, code: e.statusCode || null });
     }
 });
 
