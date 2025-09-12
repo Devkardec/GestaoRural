@@ -35,8 +35,9 @@ async function createCustomer(customerData) {
     } catch (error) {
         const detail = error.response?.data || error.message;
         console.error('❌ Erro ao criar cliente Asaas:', detail);
-        error.meta = detail; // anexa para camada superior
-        throw new Error('Falha ao criar cliente no gateway de pagamento.');
+        const err = new Error('Falha ao criar cliente no gateway de pagamento.');
+        err.meta = detail; // preserva detalhes para camada superior
+        throw err;
     }
 }
 
@@ -62,8 +63,9 @@ async function createSubscription(subscriptionData) {
     } catch (error) {
         const detail = error.response?.data || error.message;
         console.error('❌ Erro ao criar assinatura Asaas:', detail);
-        error.meta = detail;
-        throw new Error('Falha ao criar assinatura no gateway de pagamento.');
+        const err = new Error('Falha ao criar assinatura no gateway de pagamento.');
+        err.meta = detail; // preserva detalhes reais
+        throw err;
     }
 }
 
