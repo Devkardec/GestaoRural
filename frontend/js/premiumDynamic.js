@@ -61,12 +61,21 @@ async function criarOuObterLinkPagamento(plan) {
       body: JSON.stringify(body)
     });
 
+    let createdData;
     if (!created.ok) {
-      const errText = await created.text();
-      throw new Error('Falha ao criar assinatura: ' + errText);
+      // Tenta parsear JSON para extrair debug
+      let debugMsg = '';
+      try {
+        const jsonErr = await created.json();
+        debugMsg = jsonErr.debug ? ' | debug: ' + JSON.stringify(jsonErr.debug) : '';
+      } catch(_) {
+        const txt = await created.text();
+        debugMsg = ' | raw: ' + txt.substring(0,200);
+      }
+      throw new Error('Falha ao criar assinatura.' + debugMsg);
+    } else {
+      createdData = await created.json();
     }
-
-    const createdData = await created.json();
     statusEl.textContent = 'Assinatura criada. Abra e conclua o pagamento.';
     btn.textContent = 'Abrir Link de Pagamento';
     btn.onclick = () => window.open(createdData.paymentLink, '_blank');

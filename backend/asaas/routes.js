@@ -53,9 +53,11 @@ router.post('/subscription', async (req, res) => {
 
     } catch (error) {
         console.error('Erro ao criar processo de assinatura:', error.message, error.meta || '');
-        const base = { error: 'Falha ao processar a assinatura.' };
-        if (process.env.NODE_ENV !== 'production') base.debug = error.meta || error.message;
-        res.status(500).json(base);
+        // Expor sempre debug TEMPORARIAMENTE para diagnóstico (REMOVER depois)
+        res.status(500).json({
+            error: 'Falha ao processar a assinatura.',
+            debug: error.meta || error.message || null
+        });
     }
 });
 
