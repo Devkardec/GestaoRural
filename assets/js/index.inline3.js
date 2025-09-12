@@ -2024,6 +2024,56 @@ function updateCurrentWeatherPanel(data) {
                 }
             }
 
+            // --- MODAL DE STATUS PREMIUM ---
+            function openPremiumModal(data) {
+                const modal = document.getElementById('premium-status-modal');
+                if (!modal) return;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                const current = document.getElementById('premium-status-current');
+                const days = document.getElementById('premium-days-remaining');
+                const line = document.getElementById('premium-status-line');
+                if (data) {
+                    current.textContent = data.premiumStatus || '--';
+                    const dr = typeof data.daysRemaining === 'number' ? data.daysRemaining : '--';
+                    days.textContent = dr;
+                    line.textContent = data.premiumStatus === 'ACTIVE'
+                        ? 'Sua assinatura está ativa.'
+                        : data.premiumStatus === 'TRIAL'
+                            ? `Período de teste em andamento. Restam ${dr} dia(s).`
+                            : 'Seu acesso premium está inativo. Realize o pagamento para ativar.';
+                } else {
+                    current.textContent = '--';
+                    days.textContent = '--';
+                    line.textContent = 'Não foi possível obter status.';
+                }
+            }
+
+            async function fetchAndShowPremiumModal() {
+                try {
+                    if (!auth.currentUser) return openPremiumModal(null);
+                    const idToken = await auth.currentUser.getIdToken();
+                    const resp = await fetch(`${RENDER_BACKEND_URL}/asaas/status`, { headers: { 'Authorization': 'Bearer ' + idToken } });
+                    if (!resp.ok) return openPremiumModal(null);
+                    const data = await resp.json();
+                    openPremiumModal(data);
+                } catch (e) {
+                    console.error('Erro ao buscar status para modal:', e);
+                    openPremiumModal(null);
+                }
+            }
+
+            document.addEventListener('click', (e) => {
+                if (e.target.id === 'open-premium-status') {
+                    e.preventDefault();
+                    fetchAndShowPremiumModal();
+                }
+                if (e.target.id === 'close-premium-status' || (e.target.id === 'premium-status-modal' && e.target === e.currentTarget)) {
+                    const modal = document.getElementById('premium-status-modal');
+                    if (modal) modal.classList.add('hidden');
+                }
+            });
+
             // --- AUTHENTICATION FUNCTIONS ---
             function showLoginForm() {
                 document.getElementById('login-form').classList.remove('hidden');

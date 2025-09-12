@@ -178,8 +178,11 @@ app.post('/api/save-subscription', async (req, res) => {
     }
 });
 
-// Body parsing (após webhook)
-app.use(express.json());
+// Body parsing global EXCETO para webhook Asaas (mantemos raw body para assinatura)
+app.use((req, res, next) => {
+    if (req.path.startsWith('/asaas/webhook')) return next();
+    return express.json()(req, res, next);
+});
 
 // Rota de exemplo para enviar uma notificação de teste
 // Em um ambiente real, esta rota seria acionada por alguma lógica de negócio
@@ -351,11 +354,61 @@ app.post('/internal/activate-self', verifyFirebaseToken, async (req, res) => {
     }
 });
 
-// Rotas do Asaas (definir ANTES do webhook para evitar conflitos)
+// Rota do webhook PRIMEIRO captura raw body (sem express.json())
+app.use('/asaas/webhook', captureRawBody, asaasWebhook);
+
+// Demais rotas Asaas (já podem usar express.json())
 app.use('/asaas', asaasRoutes);
 
-// A rota do webhook usa o middleware para capturar o corpo bruto e deve ser mais específica
-app.use('/asaas/webhook', captureRawBody, asaasWebhook);
+// ------------------- ENDPOINTS ADMINISTRATIVOS PREMIUM -------------------
+// POST /internal/premium/reactivate  { token, uid, years? }
+app.post('/internal/premium/reactivate', async (req, res) => {
+    try {
+        const secret = process.env.ADMIN_FORCE_TOKEN;
+        if (!secret) return res.status(500).json({ error: 'ADMIN_FORCE_TOKEN não configurado.' });
+        const { token, uid, years = 1 } = req.body || {};
+        if (!token || token !== secret) return res.status(403).json({ error: 'Token inválido.' });
+        if (!uid) return res.status(400).json({ error: 'UID obrigatório.' });
+        const { findUserByUID, createUserWithTrial, updateUser } = require('./db');
+        let user = await findUserByUID(uid);
+        if (!user) user = await createUserWithTrial(uid, { email: null, name: 'Novo Usuário' });
+        const future = new Date();
+        future.setFullYear(future.getFullYear() + Number(years));
+        await updateUser(uid, {
+            'premium.status': 'ACTIVE',
+            'premium.trialEndDate': admin.firestore.Timestamp.fromDate(future),
+            'premium.lastUpdate': new Date()
+        });
+        return res.json({ message: 'Usuário reativado como ACTIVE', uid, until: future.toISOString() });
+    } catch (e) {
+        console.error('Erro em /internal/premium/reactivate:', e);
+        return res.status(500).json({ error: 'Falha ao reativar.' });
+    }
+});
+
+// POST /internal/premium/reset-trial { token, uid, days? }
+app.post('/internal/premium/reset-trial', async (req, res) => {
+    try {
+        const secret = process.env.ADMIN_FORCE_TOKEN;
+        if (!secret) return res.status(500).json({ error: 'ADMIN_FORCE_TOKEN não configurado.' });
+        const { token, uid, days = 7 } = req.body || {};
+        if (!token || token !== secret) return res.status(403).json({ error: 'Token inválido.' });
+        if (!uid) return res.status(400).json({ error: 'UID obrigatório.' });
+        const { findUserByUID, createUserWithTrial, updateUser } = require('./db');
+        let user = await findUserByUID(uid);
+        if (!user) user = await createUserWithTrial(uid, { email: null, name: 'Novo Usuário' });
+        const end = new Date(Date.now() + days * 86400000);
+        await updateUser(uid, {
+            'premium.status': 'TRIAL',
+            'premium.trialEndDate': admin.firestore.Timestamp.fromDate(end),
+            'premium.lastUpdate': new Date()
+        });
+        return res.json({ message: 'Trial redefinido', uid, trialEnds: end.toISOString(), days });
+    } catch (e) {
+        console.error('Erro em /internal/premium/reset-trial:', e);
+        return res.status(500).json({ error: 'Falha ao resetar trial.' });
+    }
+});
 
 // Iniciar o servidor
 app.listen(PORT, () => {

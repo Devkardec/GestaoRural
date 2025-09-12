@@ -37,7 +37,13 @@ function verifyAsaasSignature(req, res, next) {
 // Rota que recebe as notificações do Asaas
 // O middleware de verificação é aplicado antes da lógica principal
 router.post('/', verifyAsaasSignature, async (req, res) => {
-    const event = req.body;
+    // Garante parse do JSON se body vazio (porque pulamos express.json nesta rota)
+    if (!req.body || Object.keys(req.body).length === 0) {
+        try { req.body = JSON.parse(req.rawBody || '{}'); } catch { req.body = {}; }
+    }
+    const event = req.body || {};
+
+    console.log('📥 Webhook bruto recebido (trecho):', (req.rawBody || '').substring(0, 300));
 
     console.log(`Webhook Asaas recebido: Evento [${event.event}] para Cliente [${event.payment?.customer}]`);
 

@@ -182,6 +182,7 @@
                     class="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-sm hover:bg-red-200 hover:text-red-700 transition-colors flex items-center gap-1">
                     <i class="fas fa-sign-out-alt"></i> Sair
                 </button>
+                <button id="open-premium-status" class="bg-yellow-500 text-white px-3 py-1 rounded-full text-xs hover:bg-yellow-600 transition">Status</button>
             </div>
         </header>
 
@@ -1509,6 +1510,27 @@
 <script src="assets/js/index.inline2.js"></script>
 <script type="module" src="assets/js/index.inline3.js"></script>
 <script src="assets/js/index.inline4.js"></script>
+
+<!-- Modal Status Premium -->
+<div id="premium-status-modal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-[9998]">
+    <div class="bg-white rounded-2xl shadow-2xl w-11/12 max-w-md p-6 relative">
+         <button id="close-premium-status" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+         <h3 class="text-xl font-bold mb-2 flex items-center gap-2 text-gray-800"><i class="fas fa-crown text-yellow-500"></i>Status Premium</h3>
+         <p id="premium-status-line" class="text-sm text-gray-600 mb-4">Carregando...</p>
+         <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <p class="text-xs text-gray-500">Status</p>
+                        <p id="premium-status-current" class="text-lg font-semibold text-gray-800">--</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <p class="text-xs text-gray-500">Dias Restantes</p>
+                        <p id="premium-days-remaining" class="text-lg font-semibold text-gray-800">--</p>
+                </div>
+         </div>
+         <a id="premium-payment-link" href="https://www.asaas.com/c/o0uqcilm70ewj60u" target="_blank" class="block w-full text-center bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold py-3 rounded-lg shadow hover:from-yellow-600 hover:to-orange-600 transition mb-3">Assinar / Renovar</a>
+         <p class="text-[11px] text-gray-500 leading-relaxed">Após o pagamento seu acesso é ativado. Caso demore, contate o suporte com o email da sua conta.</p>
+    </div>
+</div>
 
 <script type="module" src="assets/js/sales.enhancements.js"></script>
 <script src="assets/js/fab-menu.js"></script>
