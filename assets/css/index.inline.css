@@ -86,6 +86,49 @@
         min-width: 300px;
     }
 
+        #schedule-category-filters {
+            /* Garante que em telas muito estreitas os botões quebrem de forma uniforme */
+            grid-auto-rows: 1fr;
+        }
+
+        #schedule-category-filters .category-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            font-size: 0.70rem; /* ligeiramente menor para caber mais colunas */
+            padding: 0.55rem 0.35rem;
+            line-height: 1.1;
+        }
+
+        @media (max-width: 420px) {
+          #schedule-category-filters {
+              grid-template-columns: repeat(3, 1fr) !important;
+              gap: 0.4rem;
+          }
+          #schedule-category-filters .category-btn {
+              font-size: 0.66rem;
+              padding: 0.45rem 0.3rem;
+          }
+        }
+
+        @media (min-width: 421px) and (max-width: 640px) {
+          #schedule-category-filters {
+              grid-template-columns: repeat(4, 1fr) !important;
+          }
+        }
+
+        @media (min-width: 641px) and (max-width: 900px) {
+          #schedule-category-filters {
+              grid-template-columns: repeat(6, 1fr) !important;
+          }
+        }
+
+        @media (min-width: 901px) {
+          #schedule-category-filters {
+              grid-template-columns: repeat(8, 1fr) !important;
+          }
+        }
     .toast-notification.show {
         transform: translateY(0);
         opacity: 1;
