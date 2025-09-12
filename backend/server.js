@@ -79,8 +79,8 @@ app.options('*', (req,res) => {
     return res.sendStatus(200);
 });
 
-// Body parsing
-app.use(express.json());
+// (IMPORTANTE) NÃO aplicar express.json antes do webhook do Asaas, pois precisamos do raw body para validar assinatura.
+// O express.json virá depois do mount do webhook.
 
 // O webhook do Asaas precisa do corpo bruto (raw) para verificar a assinatura.
 // Criamos um middleware que só se aplica à rota do webhook para capturar esse corpo.
@@ -177,6 +177,9 @@ app.post('/api/save-subscription', async (req, res) => {
         res.status(500).json({ error: 'Failed to save subscription.' });
     }
 });
+
+// Body parsing (após webhook)
+app.use(express.json());
 
 // Rota de exemplo para enviar uma notificação de teste
 // Em um ambiente real, esta rota seria acionada por alguma lógica de negócio

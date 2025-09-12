@@ -4,6 +4,7 @@ const router = express.Router();
 const { createCustomer, createSubscription } = require('./asaasClient');
 const { findUserByUID, updateUser } = require('../db');
 const { checkAuthAndPremium, checkAuth } = require('../middleware/auth');
+const admin = require('firebase-admin');
 
 // Rota para o usuário logado iniciar o processo de assinatura premium.
 router.post('/subscription', async (req, res) => {
@@ -131,3 +132,31 @@ router.get('/premium-feature', checkAuthAndPremium, (req, res) => {
 });
 
 module.exports = router;
+
+/**
+ * ROTA DE SIMULAÇÃO (ambiente de desenvolvimento):
+ * POST /asaas/simulate-payment { uid: '...' }
+ * Promove o usuário para ACTIVE como se tivesse recebido PAYMENT_CONFIRMED.
+ * (Não usar em produção)
+ */
+if (process.env.NODE_ENV !== 'production') {
+    router.post('/simulate-payment', async (req, res) => {
+        try {
+            const { uid } = req.body || {};
+            if (!uid) return res.status(400).json({ error: 'uid é obrigatório' });
+            let user = await findUserByUID(uid);
+            if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+            const farFuture = new Date();
+            farFuture.setFullYear(farFuture.getFullYear() + 1);
+            await updateUser(uid, {
+                'premium.status': 'ACTIVE',
+                'premium.trialEndDate': admin.firestore.Timestamp.fromDate(farFuture),
+                'premium.lastUpdate': new Date()
+            });
+            return res.json({ message: 'Simulação aplicada: ACTIVE', uid, until: farFuture.toISOString() });
+        } catch (e) {
+            console.error('Erro em /asaas/simulate-payment:', e);
+            return res.status(500).json({ error: 'Falha na simulação.' });
+        }
+    });
+}

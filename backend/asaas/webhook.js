@@ -36,7 +36,7 @@ function verifyAsaasSignature(req, res, next) {
 
 // Rota que recebe as notificações do Asaas
 // O middleware de verificação é aplicado antes da lógica principal
-router.post('/webhook', verifyAsaasSignature, async (req, res) => {
+router.post('/', verifyAsaasSignature, async (req, res) => {
     const event = req.body;
 
     console.log(`Webhook Asaas recebido: Evento [${event.event}] para Cliente [${event.payment?.customer}]`);
