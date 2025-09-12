@@ -1510,6 +1510,19 @@
 <script src="assets/js/index.inline2.js"></script>
 <script type="module" src="assets/js/index.inline3.js"></script>
 <script src="assets/js/index.inline4.js"></script>
+<script>
+// Fallback para dispositivos móveis: tenta atualizar status após carregamento completo
+window.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){
+        var st = document.getElementById('subscription-status');
+        if(st && (!st.textContent || st.textContent === '' || st.textContent === 'Carregando...' )){
+            if(window.updateSubscriptionStatus){
+                try { window.updateSubscriptionStatus(); } catch(_){ }
+            }
+        }
+    }, 1200);
+});
+</script>
 
 <!-- Modal Status Premium -->
 <div id="premium-status-modal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-[9998]">

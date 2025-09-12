@@ -2033,6 +2033,8 @@ function updateCurrentWeatherPanel(data) {
                     }
                 }
             }
+            // Expor global para fallback em mobile/PWA
+            window.updateSubscriptionStatus = updateSubscriptionStatus;
 
             // --- MODAL DE STATUS PREMIUM ---
             function openPremiumModal(data) {
@@ -2081,7 +2083,7 @@ function updateCurrentWeatherPanel(data) {
                 }
                 if (e.target.id === 'close-premium-status' || (e.target.id === 'premium-status-modal' && e.target === e.currentTarget)) {
                     const modal = document.getElementById('premium-status-modal');
-                    if (modal) modal.classList.add('hidden');
+                    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
                 }
             });
 
@@ -2364,6 +2366,8 @@ function updateCurrentWeatherPanel(data) {
                             updateSubscriptionStatus(); // busca inicial
                             // Segunda tentativa pós-render para garantir atualização em mobile lento
                             setTimeout(()=>updateSubscriptionStatus(), 1500);
+                            // Atualização periódica (5 min) para manter dias restantes corretos em longas sessões
+                            setInterval(()=>updateSubscriptionStatus(), 5*60*1000);
 
                             // Weather
                             if (navigator.geolocation) {
