@@ -203,17 +203,21 @@ app.post('/api/send-webpush', express.json(), async (req, res) => {
         const subDoc = await db.collection('subscriptions').doc(userId).get();
         if (!subDoc.exists) return res.status(404).json({ error: 'Subscription não encontrada para userId.' });
         const subscription = subDoc.data();
+        const ABS_ICON = 'https://agrocultivegestaorural.com.br/assets/img/faviconsf.png';
         const payload = {
             notification: {
                 title: title || 'AgroCultive',
                 body: body || 'Você tem uma nova atualização.',
                 tag: type || 'generic',
-                icon: 'assets/img/faviconsf.png',
-                badge: 'assets/img/faviconsf.png',
+                icon: ABS_ICON,
+                badge: ABS_ICON,
+                vibrate: [100, 50, 100],
+                requireInteraction: false,
+                timestamp: Date.now(),
                 data: { url: url || '/', type: type || 'generic', refId: refId || null }
             }
         };
-        await webpush.sendNotification(subscription, JSON.stringify(payload));
+        await webpush.sendNotification(subscription, JSON.stringify(payload), { TTL: 300, headers: { Urgency: 'high' } });
         return res.json({ success: true });
     } catch (e) {
         console.error('Falha ao enviar push local:', e?.statusCode, e?.message, e?.body ? `Body: ${e.body}` : '');

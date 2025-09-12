@@ -37,7 +37,7 @@ async function sendToUser(db, userId, notificationPayload) {
   if (!subDoc.exists) return { skipped: true, reason: 'no-subscription' };
   const subscription = subDoc.data();
   try {
-    await webpush.sendNotification(subscription, JSON.stringify(notificationPayload));
+    await webpush.sendNotification(subscription, JSON.stringify(notificationPayload), { TTL: 300, headers: { Urgency: 'high' } });
     return { ok: true };
   } catch (e) {
     console.error('Erro push user', userId, e.statusCode, e.message);
@@ -109,13 +109,17 @@ async function processReminders(db, { debug = false } = {}) {
     const title = r.title || inferTitle(r.type);
     const body = r.body || buildBody(r);
     const url = r.url || buildUrl(r);
+    const ABS_ICON = 'https://agrocultivegestaorural.com.br/assets/img/faviconsf.png';
     const payload = {
       notification: {
         title,
         body,
         tag: r.type || 'reminder',
-        icon: 'assets/img/faviconsf.png',
-        badge: 'assets/img/faviconsf.png',
+        icon: ABS_ICON,
+        badge: ABS_ICON,
+        vibrate: [120, 40, 120],
+        requireInteraction: false,
+        timestamp: Date.now(),
         data: { url, type: r.type || 'reminder', refId: r.refId || r.id },
       },
     };
