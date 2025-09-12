@@ -6,6 +6,18 @@
 
 const BACKEND_BASE = 'https://agrocultive-backend.onrender.com'; // Ajuste se mudar domínio
 
+// Verifica se o backend tem as variáveis ASAAS configuradas para evitar ficar tentando gerar link sem chance de sucesso.
+async function verificarConfigAsaas() {
+  try {
+    const r = await fetch(`${BACKEND_BASE}/asaas/debug/env`);
+    if (!r.ok) return { ok: false };
+    const data = await r.json();
+    return { ok: true, hasKey: data.has_API_KEY, hasUrl: data.has_API_URL };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
 async function obterIdToken() {
   if (!window.firebase || !firebase.auth().currentUser) return null;
   return firebase.auth().currentUser.getIdToken();
@@ -117,6 +129,23 @@ async function carregarStatusAtual() {
 window.initPremiumDynamic = function() {
   const btn = document.getElementById('dynamic-premium-btn');
   const select = document.getElementById('dynamic-plan-select');
+  const statusEl = document.getElementById('dynamic-premium-status');
+
+  // Primeiro: checar config Asaas para não frustrar o usuário
+  (async () => {
+    const cfg = await verificarConfigAsaas();
+    if (!cfg.ok) {
+      if (statusEl) statusEl.textContent = 'Servidor indisponível para gerar link agora.';
+      if (btn) { btn.disabled = true; btn.textContent = 'Indisponível'; }
+      return; // não continua; usuário pode usar link fixo
+    }
+    if (!cfg.hasKey || !cfg.hasUrl) {
+      if (statusEl) statusEl.textContent = 'Link personalizado desativado (configuração de pagamento pendente).';
+      if (btn) { btn.disabled = true; btn.textContent = 'Configurar Servidor'; }
+      return;
+    }
+    // Caso esteja tudo ok, segue fluxo normal
+  })();
   // Espera firebase carregar
   let attempts = 0;
   const waitAuth = setInterval(()=>{
