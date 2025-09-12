@@ -17,6 +17,7 @@ router.post('/subscription', async (req, res) => {
     }
 
     try {
+        console.log('🟢 /asaas/subscription chamada', { uid, hasPlan: !!subscriptionPlan, plan: subscriptionPlan });
         let user = await findUserByUID(uid);
         if (!user) {
             return res.status(404).json({ error: 'Usuário não encontrado.' });
@@ -51,8 +52,10 @@ router.post('/subscription', async (req, res) => {
         res.status(200).json({ paymentLink: subscription.paymentLink });
 
     } catch (error) {
-        console.error('Erro ao criar processo de assinatura:', error);
-        res.status(500).json({ error: 'Falha ao processar a assinatura.' });
+        console.error('Erro ao criar processo de assinatura:', error.message, error.meta || '');
+        const base = { error: 'Falha ao processar a assinatura.' };
+        if (process.env.NODE_ENV !== 'production') base.debug = error.meta || error.message;
+        res.status(500).json(base);
     }
 });
 
@@ -180,6 +183,15 @@ router.get('/me', checkAuth, async (req, res) => {
         console.error('Erro em /asaas/me:', e);
         return res.status(500).json({ error: 'Falha ao obter perfil.' });
     }
+});
+
+// Debug de configuração Asaas (NÃO deixar em produção final)
+router.get('/debug/env', async (req, res) => {
+    res.json({
+        has_API_URL: !!process.env.ASAAS_API_URL,
+        has_API_KEY: !!process.env.ASAAS_API_KEY,
+        apiUrlSample: process.env.ASAAS_API_URL ? process.env.ASAAS_API_URL.substring(0, 30) + '...' : null
+    });
 });
 
 module.exports = router;

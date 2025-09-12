@@ -5,6 +5,10 @@ const axios = require('axios');
 const ASAAS_API_URL = process.env.ASAAS_API_URL;
 const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
 
+if (!ASAAS_API_URL || !ASAAS_API_KEY) {
+    console.warn('⚠️  Variáveis ASAAS_API_URL ou ASAAS_API_KEY ausentes. As chamadas para criação de assinatura irão falhar.');
+}
+
 // Configuração centralizada do cliente Axios para a API do Asaas
 const apiClient = axios.create({
     baseURL: ASAAS_API_URL,
@@ -21,11 +25,17 @@ const apiClient = axios.create({
  */
 async function createCustomer(customerData) {
     try {
+        if (!ASAAS_API_URL || !ASAAS_API_KEY) {
+            throw new Error('Configuração Asaas incompleta (ASAAS_API_URL / ASAAS_API_KEY).');
+        }
+        console.log('➡️  Enviando createCustomer para Asaas', { endpoint: ASAAS_API_URL + '/customers' });
         const response = await apiClient.post('/customers', customerData);
-        console.log(`Cliente criado no Asaas: ${response.data.id}`);
+        console.log(`✅ Cliente criado no Asaas: ${response.data.id}`);
         return response.data;
     } catch (error) {
-        console.error('Erro ao criar cliente Asaas:', error.response?.data || error.message);
+        const detail = error.response?.data || error.message;
+        console.error('❌ Erro ao criar cliente Asaas:', detail);
+        error.meta = detail; // anexa para camada superior
         throw new Error('Falha ao criar cliente no gateway de pagamento.');
     }
 }
@@ -37,16 +47,22 @@ async function createCustomer(customerData) {
  */
 async function createSubscription(subscriptionData) {
     try {
+        if (!ASAAS_API_URL || !ASAAS_API_KEY) {
+            throw new Error('Configuração Asaas incompleta (ASAAS_API_URL / ASAAS_API_KEY).');
+        }
         const payload = {
             ...subscriptionData,
             billingType: 'UNDEFINED', // Deixa o cliente escolher (Boleto, Cartão, PIX)
             cycle: subscriptionData.cycle || 'MONTHLY'
         };
+        console.log('➡️  Enviando createSubscription para Asaas', { endpoint: ASAAS_API_URL + '/subscriptions', payload });
         const response = await apiClient.post('/subscriptions', payload);
-        console.log(`Assinatura criada no Asaas: ${response.data.id}`);
+        console.log(`✅ Assinatura criada no Asaas: ${response.data.id}`);
         return response.data; // A resposta já contém o `paymentLink`
     } catch (error) {
-        console.error('Erro ao criar assinatura Asaas:', error.response?.data || error.message);
+        const detail = error.response?.data || error.message;
+        console.error('❌ Erro ao criar assinatura Asaas:', detail);
+        error.meta = detail;
         throw new Error('Falha ao criar assinatura no gateway de pagamento.');
     }
 }
