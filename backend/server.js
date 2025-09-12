@@ -164,7 +164,7 @@ app.post('/api/create-user-profile', verifyFirebaseToken, async (req, res) => {
 });
 
 // Rota para salvar a inscrição do usuário
-app.post('/api/save-subscription', async (req, res) => {
+app.post('/api/save-subscription', express.json(), async (req, res) => {
     const subscription = req.body.subscription;
     const userId = req.body.userId; // Opcional: se você associar a inscrição a um usuário
 
@@ -192,7 +192,7 @@ app.post('/api/save-subscription', async (req, res) => {
 });
 
 // Envio de Web Push direto pelo backend (Render)
-app.post('/api/send-webpush', async (req, res) => {
+app.post('/api/send-webpush', express.json(), async (req, res) => {
     if (!req.body) return res.status(400).json({ error: 'Body ausente' });
     const { userId, title, body, url, type, refId } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId é obrigatório' });
