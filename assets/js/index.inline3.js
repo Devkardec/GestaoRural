@@ -3766,6 +3766,54 @@ function updateCurrentWeatherPanel(data) {
                         );
                     }
 
+                    // ---- NOVO BLOCO: Criar/atualizar reminder global ----
+                    // Regras:
+                    // 1. Só gera reminder se houver data e horário (precisamos de precisão)
+                    // 2. Collection raiz: 'reminders' (para o cron buscar)
+                    // 3. scheduledAt = Timestamp Firestore => usamos Date local (sem timezone shift indevido)
+                    // 4. Campo userId = auth.currentUser.uid
+                    // 5. Se edição e tarefa já tinha reminderId, atualiza; caso contrário cria novo
+                    async function upsertReminderForTask(taskId, currentTaskData) {
+                        try {
+                            if (!auth?.currentUser) return;
+                            const hasSchedule = currentTaskData.scheduledDate && currentTaskData.scheduledTime;
+                            const globalRemindersCol = collection(db, 'reminders');
+                            // Se não tem data/hora e existir reminder anterior, podemos futuramente remover.
+                            if (!hasSchedule) return;
+                            const iso = `${currentTaskData.scheduledDate}T${currentTaskData.scheduledTime}:00`;
+                            const dt = new Date(iso);
+                            if (isNaN(dt.getTime())) {
+                                console.warn('Data/hora inválida para reminder task:', iso);
+                                return;
+                            }
+                            const scheduledAt = dt; // Será convertido via serverTimestamp se quisermos offset; mantemos local.
+                            // Recuperar doc tarefa para ver se já tem reminderId
+                            const taskDocSnap = await getDoc(doc(tasksCollectionRef, taskId));
+                            let reminderId = taskDocSnap.exists() ? taskDocSnap.data().reminderId : null;
+                            const baseReminderData = {
+                                userId: auth.currentUser.uid,
+                                type: 'task',
+                                description: currentTaskData.text,
+                                title: 'Tarefa Agendada',
+                                scheduledAt: scheduledAt, // Firestore converte Date
+                                notified: false,
+                                taskId: taskId,
+                                createdAt: serverTimestamp(),
+                                updatedAt: serverTimestamp()
+                            };
+                            if (reminderId) {
+                                await updateDoc(doc(globalRemindersCol, reminderId), baseReminderData);
+                            } else {
+                                const newReminderRef = await addDoc(globalRemindersCol, baseReminderData);
+                                reminderId = newReminderRef.id;
+                                await updateDoc(doc(tasksCollectionRef, taskId), { reminderId });
+                            }
+                            console.log('Reminder upsert concluído (task)', { taskId, reminderId, when: scheduledAt });
+                        } catch (e) {
+                            console.warn('Falha upsert reminder task:', e);
+                        }
+                    }
+
                     if (editingIdInput && editingIdInput.value) {
                         // Editando tarefa existente
                         const taskId = editingIdInput.value;
@@ -3773,11 +3821,13 @@ function updateCurrentWeatherPanel(data) {
                             ...taskData,
                             updatedAt: new Date()
                         });
+                        await upsertReminderForTask(taskId, taskData);
                         showToast('Tarefa atualizada!');
                         editingIdInput.remove();
                     } else {
                         // Criando nova tarefa
-                        await addDoc(tasksCollectionRef, taskData);
+                        const newTaskRef = await addDoc(tasksCollectionRef, taskData);
+                        await upsertReminderForTask(newTaskRef.id, taskData);
                         showToast('Tarefa adicionada!');
                     }
 
@@ -3821,6 +3871,10 @@ function updateCurrentWeatherPanel(data) {
                     `Tem certeza que deseja excluir a tarefa ${taskText}?`,
                     async () => {
                         try {
+                            // Remover reminder global associado (se existir)
+                            if (task?.reminderId) {
+                                try { await deleteDoc(doc(collection(db, 'reminders'), task.reminderId)); } catch(_) {}
+                            }
                             await deleteDoc(doc(tasksCollectionRef, taskId));
                             showToast('Tarefa excluída com sucesso!');
                         } catch (error) {

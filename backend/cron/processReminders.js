@@ -14,12 +14,13 @@ function ensureVapidLocal() {
 
 async function fetchDueReminders(db, limit = 50) {
   const now = admin.firestore.Timestamp.now();
-  const snap = await db
+  const baseQuery = db
     .collection('reminders')
     .where('scheduledAt', '<=', now)
     .orderBy('scheduledAt', 'asc')
-    .limit(limit)
-    .get();
+    .limit(limit);
+  const snap = await baseQuery.get();
+  const rawCount = snap.size;
   const docs = [];
   snap.forEach((d) => {
     const data = d.data();
@@ -27,6 +28,7 @@ async function fetchDueReminders(db, limit = 50) {
       docs.push({ id: d.id, ...data });
     }
   });
+  console.log(`[cron] Query reminders <= now: raw=${rawCount} pendingAfterFilter=${docs.length}`);
   return docs;
 }
 
@@ -94,11 +96,15 @@ function buildUrl(r) {
   }
 }
 
-async function processReminders(db) {
+async function processReminders(db, { debug = false } = {}) {
   ensureVapidLocal();
   const due = await fetchDueReminders(db);
-  if (!due.length) return { processed: 0, sent: 0 };
+  if (!due.length) {
+    if (debug) console.log('[cron] Nenhum lembrete devido neste ciclo.');
+    return { processed: 0, sent: 0, items: [] };
+  }
   let sent = 0;
+  const items = [];
   for (const r of due) {
     const title = r.title || inferTitle(r.type);
     const body = r.body || buildBody(r);
@@ -113,7 +119,9 @@ async function processReminders(db) {
         data: { url, type: r.type || 'reminder', refId: r.refId || r.id },
       },
     };
+    if (debug) console.log('[cron] Enviando lembrete', r.id, 'userId=', r.userId, 'type=', r.type, 'scheduledAt=', r.scheduledAt?.toDate?.());
     const result = await sendToUser(db, r.userId, payload);
+    items.push({ id: r.id, userId: r.userId, result });
     if (result.ok) {
       sent++;
       await db
@@ -125,7 +133,8 @@ async function processReminders(db) {
         );
     }
   }
-  return { processed: due.length, sent };
+  console.log(`[cron] Ciclo concluído processed=${due.length} sent=${sent}`);
+  return { processed: due.length, sent, items };
 }
 
 module.exports = { processReminders };
