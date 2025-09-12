@@ -175,7 +175,8 @@ self.addEventListener('push', (event) => {
 
     const n = data.notification;
     const type = n.tag || n.type || 'generic';
-    const baseIcon = 'assets/img/faviconsf.png';
+    // Usar ícone absoluto para evitar falhas em alguns dispositivos Android que não resolvem caminho relativo em background
+    const baseIcon = 'https://agrocultivegestaorural.com.br/assets/img/faviconsf.png';
     const iconMap = {
         'task': baseIcon,
         'application': baseIcon,
@@ -194,6 +195,9 @@ self.addEventListener('push', (event) => {
         icon: n.icon || iconMap[type] || baseIcon,
         badge: n.badge || baseIcon,
         tag: n.tag || type,
+        vibrate: n.vibrate || [100,50,100],
+        requireInteraction: false,
+        timestamp: Date.now(),
         data: {
             url: n.data?.url || n.click_action || '/',
             type: type,

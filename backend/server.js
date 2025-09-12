@@ -283,6 +283,30 @@ app.post('/internal/debug/create-reminder', express.json(), async (req, res) => 
     }
 });
 
+// Endpoint de debug: listar reminders de um usuário (limit 50, ordenar por scheduledAt asc)
+// POST /internal/debug/list-reminders { token, userId, includeNotified? }
+app.post('/internal/debug/list-reminders', express.json(), async (req, res) => {
+    try {
+        const secret = process.env.ADMIN_FORCE_TOKEN;
+        if (!secret) return res.status(500).json({ error: 'ADMIN_FORCE_TOKEN não configurado.' });
+        const { token, userId, includeNotified = false } = req.body || {};
+        if (!token || token !== secret) return res.status(403).json({ error: 'Token inválido.' });
+        if (!userId) return res.status(400).json({ error: 'userId é obrigatório.' });
+        let q = db.collection('reminders').where('userId', '==', userId).orderBy('scheduledAt', 'asc').limit(50);
+        const snap = await q.get();
+        const results = [];
+        snap.forEach(d => {
+            const data = d.data();
+            if (!includeNotified && data.notified) return; // pula já enviados se não solicitado
+            results.push({ id: d.id, scheduledAt: data.scheduledAt?.toDate?.() || null, notified: data.notified || false, type: data.type, description: data.description, debug: data.debug || false });
+        });
+        return res.json({ count: results.length, items: results });
+    } catch (e) {
+        console.error('Erro em /internal/debug/list-reminders:', e);
+        return res.status(500).json({ error: 'Falha ao listar reminders', details: e.message });
+    }
+});
+
 // Agendamento via node-cron (a cada minuto) controlado por variável ENABLE_CRON
 if (process.env.ENABLE_CRON === 'true') {
     cron.schedule('*/1 * * * *', async () => {
