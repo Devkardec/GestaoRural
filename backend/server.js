@@ -216,12 +216,19 @@ app.post('/api/send-webpush', express.json(), async (req, res) => {
         await webpush.sendNotification(subscription, JSON.stringify(payload));
         return res.json({ success: true });
     } catch (e) {
-        console.error('Falha ao enviar push local:', e?.statusCode, e?.message);
+        console.error('Falha ao enviar push local:', e?.statusCode, e?.message, e?.body ? `Body: ${e.body}` : '');
         if (e?.statusCode === 410 || e?.statusCode === 404) {
             try { await db.collection('subscriptions').doc(userId).delete(); } catch(_){ }
         }
-        return res.status(500).json({ error: 'Falha ao enviar push', details: e.message, code: e.statusCode || null });
+        return res.status(500).json({ error: 'Falha ao enviar push', details: e.message, code: e.statusCode || null, body: e.body || null });
     }
+});
+
+// Expor configuração pública (chave VAPID pública) para evitar divergência de chaves
+app.get('/config/public', (req, res) => {
+    const pub = process.env.VAPID_PUBLIC_KEY || null;
+    const subject = process.env.VAPID_SUBJECT || null;
+    res.json({ vapidPublicKey: pub, subject });
 });
 
 // Endpoint manual para disparar cron (protegido por ADMIN_FORCE_TOKEN)

@@ -43,7 +43,8 @@
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
     // NOVO: Chave pública VAPID (atualizada em 2025-09-12)
-    const FRONTEND_VAPID_PUBLIC_KEY = 'BFWJ_5_CL58BM1UVVDLZ16fA5khPSRyPd52mii1tVy4cwI2GK3xPZmffZbhWmKtTscYHBA0gzBQ4WM2JUQ58T_s';
+    // Se houver divergência com o backend, a função getVapidPublicKey() abaixo irá buscar a correta em /config/public
+    const FRONTEND_VAPID_PUBLIC_KEY = 'BMLk5_jpuLJxa7H7vflWBBP3ByZ7Vx9lMC-KzISENjID-tkHFXDDF68oPGVS45Q7CmHi9RFSA_V39PcSx6x1ook';
 
         // NOVO: Converte a chave VAPID para o formato correto
         function urlBase64ToUint8Array(base64String) {
@@ -59,6 +60,31 @@
                 outputArray[i] = rawData.charCodeAt(i);
             }
             return outputArray;
+        }
+
+        // Resolve a chave VAPID pública a ser usada na inscrição
+        // Tenta buscar do backend (/config/public); se falhar, usa a constante local
+        let RESOLVED_VAPID_PUBLIC_KEY = null;
+        async function getVapidPublicKey() {
+            if (RESOLVED_VAPID_PUBLIC_KEY) return RESOLVED_VAPID_PUBLIC_KEY;
+            try {
+                // Usa cache: 'no-store' para sempre pegar a atual
+                const resp = await fetch(`${RENDER_BACKEND_URL}/config/public`, { cache: 'no-store' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data?.vapidPublicKey) {
+                        RESOLVED_VAPID_PUBLIC_KEY = data.vapidPublicKey;
+                        if (FRONTEND_VAPID_PUBLIC_KEY && FRONTEND_VAPID_PUBLIC_KEY !== RESOLVED_VAPID_PUBLIC_KEY) {
+                            console.warn('VAPID mismatch detectado (frontend vs backend). Usando a chave do servidor.');
+                        }
+                        return RESOLVED_VAPID_PUBLIC_KEY;
+                    }
+                }
+            } catch (e) {
+                console.warn('Falha ao buscar VAPID_PUBLIC_KEY do servidor. Usando a constante local.', e?.message || e);
+            }
+            RESOLVED_VAPID_PUBLIC_KEY = FRONTEND_VAPID_PUBLIC_KEY;
+            return RESOLVED_VAPID_PUBLIC_KEY;
         }
 
         // NOVO: Envia a inscrição para o servidor com logs robustos
@@ -102,9 +128,10 @@
                     return;
                 }
 
+                const vapidKey = await getVapidPublicKey();
                 const subscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(FRONTEND_VAPID_PUBLIC_KEY),
+                    applicationServerKey: urlBase64ToUint8Array(vapidKey),
                 });
 
                 console.log('Usuário inscrito com sucesso:', subscription);
@@ -127,9 +154,22 @@
             try {
                 const reg = await navigator.serviceWorker.ready;
                 const existing = await reg.pushManager.getSubscription();
+                const serverVapid = await getVapidPublicKey();
+                const localVapid = (() => { try { return localStorage.getItem('vapidPublicKey') || FRONTEND_VAPID_PUBLIC_KEY; } catch(_) { return FRONTEND_VAPID_PUBLIC_KEY; } })();
                 if (existing) {
-                    console.log('ensurePushSubscription: já existe subscription. Reenviando...');
-                    await sendSubscriptionToServer(existing);
+                    if (serverVapid && localVapid && serverVapid !== localVapid) {
+                        console.warn('ensurePushSubscription: VAPID mudou (local vs servidor). Refazendo inscrição com a nova chave...');
+                        try { await existing.unsubscribe(); } catch(_) {}
+                        const newSub = await reg.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: urlBase64ToUint8Array(serverVapid),
+                        });
+                        await sendSubscriptionToServer(newSub);
+                        try { localStorage.setItem('vapidPublicKey', serverVapid); } catch(_) {}
+                    } else {
+                        console.log('ensurePushSubscription: já existe subscription. Reenviando...');
+                        await sendSubscriptionToServer(existing);
+                    }
                 } else {
                     console.log('ensurePushSubscription: criando nova subscription.');
                     await subscribeUserToPush();
@@ -2468,15 +2508,41 @@ function updateCurrentWeatherPanel(data) {
                                             const code = parsed?.code || res.status;
                                             const details = parsed?.details || 'Sem detalhes';
                                             let hint = '';
-                                            if (code === 410 || code === 404) {
-                                                hint = ' Subscription inválida. Vou recriar...';
+                                            let attemptedRetry = false;
+                                            const recreate = async () => {
                                                 try {
-                                                    const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
+                                                    const swr = await navigator.serviceWorker.ready;
+                                                    const sub = await swr.pushManager.getSubscription();
                                                     if (sub) await sub.unsubscribe();
                                                     await ensurePushSubscription();
                                                 } catch(e2){ console.warn('Falha ao recriar subscription', e2); }
+                                            };
+                                            if (code === 410 || code === 404) {
+                                                hint = ' Subscription inválida. Vou recriar...';
+                                                await recreate();
                                             } else if (code === 401 || code === 403) {
-                                                hint = ' Possível mismatch de chaves VAPID (frontend vs backend).';
+                                                hint = ' Possível mismatch de chaves VAPID (frontend vs backend). Vou recriar e tentar 1x.';
+                                                await recreate();
+                                                attemptedRetry = true;
+                                            }
+                                            if (attemptedRetry) {
+                                                try {
+                                                    const res2 = await fetch(`${RENDER_BACKEND_URL}/api/send-webpush`, {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            userId: auth.currentUser.uid,
+                                                            title: 'Teste Push',
+                                                            body: 'Notificação de teste enviada com sucesso!',
+                                                            url: '/',
+                                                            type: 'test'
+                                                        })
+                                                    });
+                                                    if (res2.ok) {
+                                                        showToast('Push de teste enviado após recriar inscrição!');
+                                                        return;
+                                                    }
+                                                } catch (e3) { console.warn('Retry falhou:', e3); }
                                             }
                                             showToast(`Falha push (code ${code}): ${details}.${hint}`, 'error');
                                         }
