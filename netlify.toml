@@ -17,3 +17,8 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Função agendada para processar lembretes (executa a cada minuto)
+[[scheduled.functions]]
+  function = "process-reminders"
+  cron = "*/1 * * * *"

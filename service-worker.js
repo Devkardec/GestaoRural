@@ -161,34 +161,46 @@ self.addEventListener('notificationclick', (event) => {
 // Evento de Push para notificações do servidor
 self.addEventListener('push', (event) => {
     console.log('Service Worker: Push Received.');
-
     let data = {};
-    // Tenta analisar o payload como JSON. Se falhar, trata como texto.
     if (event.data) {
-        try {
-            data = event.data.json();
-        } catch (e) {
-            console.log('Push data is not JSON, treating as text.');
-            data = { notification: { title: 'Nova Notificação', body: event.data.text() } };
+        try { data = event.data.json(); }
+        catch(e){
+            console.warn('Push payload não JSON, usando texto simples');
+            data = { notification: { title: 'AgroCultive', body: event.data.text() } };
         }
-    } else {
-        console.log('Push event, but no data.');
-        // Cria uma notificação padrão se não houver dados
-        data = { notification: { title: 'AgroCultive', body: 'Você tem uma nova atualização.' } };
+    }
+    if (!data.notification) {
+        data.notification = { title: 'AgroCultive', body: 'Atualização disponível.' };
     }
 
-    const notification = data.notification || {};
-    const title = notification.title || 'AgroCultive';
+    const n = data.notification;
+    const type = n.tag || n.type || 'generic';
+    const baseIcon = 'assets/img/faviconsf.png';
+    const iconMap = {
+        'task': baseIcon,
+        'application': baseIcon,
+        'payment-late': baseIcon,
+        'vaccine': baseIcon,
+        'reminder': baseIcon,
+        'generic': baseIcon
+    };
+    const actions = [
+        { action: 'open', title: 'Abrir' }
+        // Futuro: { action: 'adiar10', title: 'Adiar 10 min' }
+    ];
+
     const options = {
-        body: notification.body || 'Você tem uma nova mensagem.',
-        icon: notification.icon || 'assets/img/faviconsf.png',
-        badge: notification.badge || 'assets/img/faviconsf.png',
-        tag: notification.tag || 'general-notification',
+        body: n.body || 'Você tem uma nova mensagem.',
+        icon: n.icon || iconMap[type] || baseIcon,
+        badge: n.badge || baseIcon,
+        tag: n.tag || type,
         data: {
-            // Tenta obter a URL de diferentes campos possíveis no payload
-            url: notification.click_action || data.fcmOptions?.link || '/'
-        }
+            url: n.data?.url || n.click_action || '/',
+            type: type,
+            refId: n.data?.refId || null
+        },
+        actions
     };
 
-    event.waitUntil(self.registration.showNotification(title, options));
+    event.waitUntil(self.registration.showNotification(n.title || 'AgroCultive', options));
 });
