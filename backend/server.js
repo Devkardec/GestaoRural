@@ -238,11 +238,44 @@ app.post('/internal/cron/process-reminders', express.json(), async (req, res) =>
         if (!secret) return res.status(500).json({ error: 'ADMIN_FORCE_TOKEN não configurado.' });
         const { token } = req.body || {};
         if (!token || token !== secret) return res.status(403).json({ error: 'Token inválido.' });
-        const result = await processReminders(db);
+        const result = await processReminders(db, { debug: true });
         return res.json(result);
     } catch (e) {
         console.error('Erro ao processar reminders manual:', e);
         return res.status(500).json({ error: 'Falha no cron manual', details: e.message });
+    }
+});
+
+// Endpoint de debug: cria reminder sintético imediato (ou com pequeno atraso)
+// POST /internal/debug/create-reminder { token, userId, type?, description?, delaySeconds? }
+app.post('/internal/debug/create-reminder', express.json(), async (req, res) => {
+    try {
+        const secret = process.env.ADMIN_FORCE_TOKEN;
+        if (!secret) return res.status(500).json({ error: 'ADMIN_FORCE_TOKEN não configurado.' });
+        const { token, userId, type = 'task', description = 'Reminder de debug', delaySeconds = 0 } = req.body || {};
+        if (!token || token !== secret) return res.status(403).json({ error: 'Token inválido.' });
+        if (!userId) return res.status(400).json({ error: 'userId é obrigatório.' });
+        const when = new Date(Date.now() + (Number(delaySeconds) * 1000));
+        const reminderDoc = await db.collection('reminders').add({
+            userId,
+            type,
+            description,
+            title: 'Debug Reminder',
+            scheduledAt: when,
+            notified: false,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            debug: true
+        });
+        // Opcional: processar imediatamente se scheduledAt <= agora
+        let processed = null;
+        if (when.getTime() <= Date.now()) {
+            processed = await processReminders(db, { debug: true });
+        }
+        return res.json({ created: reminderDoc.id, scheduledAt: when.toISOString(), autoProcessed: processed });
+    } catch (e) {
+        console.error('Erro em /internal/debug/create-reminder:', e);
+        return res.status(500).json({ error: 'Falha ao criar reminder de debug', details: e.message });
     }
 });
 
