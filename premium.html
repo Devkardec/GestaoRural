@@ -206,9 +206,15 @@
                     </p>
                 </div>
                 
-                <a href="https://www.asaas.com/c/o0uqcilm70ewj60u" target="_blank" class="cta-button inline-block text-white font-bold text-xl px-12 py-4 rounded-2xl no-underline">
-                    <i class="fas fa-rocket mr-3"></i>Começar Agora
-                </a>
+                                <div class="flex flex-col gap-4 items-center">
+                                    <a href="https://www.asaas.com/c/o0uqcilm70ewj60u" target="_blank" class="cta-button inline-block text-white font-bold text-xl px-12 py-4 rounded-2xl no-underline">
+                                            <i class="fas fa-rocket mr-3"></i>Link Fixo (Fallback)
+                                    </a>
+                                    <div class="w-full max-w-md bg-white bg-opacity-20 p-4 rounded-2xl">
+                                        <p id="dynamic-premium-status" class="text-sm text-white mb-2">Gerar link personalizado (login necessário)</p>
+                                        <button id="dynamic-premium-btn" class="w-full cta-button text-white font-semibold py-3 rounded-xl text-lg">Gerar Link Personalizado</button>
+                                    </div>
+                                </div>
                 
                 <p class="text-sm opacity-80 mt-4">
                     <i class="fas fa-info-circle mr-1"></i>
@@ -305,14 +311,41 @@
                     Junte-se a milhares de produtores que já transformaram sua gestão agrícola
                 </p>
                 
-                <a href="https://www.asaas.com/c/o0uqcilm70ewj60u" target="_blank" class="cta-button inline-block text-white font-bold text-xl px-12 py-4 rounded-2xl no-underline">
-                    <i class="fas fa-star mr-3"></i>Ativar Premium Agora
-                </a>
+                                <div class="flex flex-col gap-4 items-center">
+                                    <a href="https://www.asaas.com/c/o0uqcilm70ewj60u" target="_blank" class="cta-button inline-block text-white font-bold text-xl px-12 py-4 rounded-2xl no-underline">
+                                            <i class="fas fa-star mr-3"></i>Ativar Premium (Fallback)
+                                    </a>
+                                    <button id="dynamic-premium-btn-2" class="cta-button inline-block text-white font-bold text-xl px-12 py-4 rounded-2xl">Gerar Link Personalizado</button>
+                                </div>
             </div>
         </section>
     </main>
     
-    <script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
+        <script>
+            // Inicializa Firebase simples só para auth nesta página
+            const firebaseConfig = { apiKey: "AIzaSyAtwYV-toZBKbSwg2PE4AhTsJ47AaPKD4Q", authDomain: "agrocultiveapps.firebaseapp.com", projectId: "agrocultiveapps", storageBucket: "agrocultiveapps.appspot.com", messagingSenderId: "1095510209034", appId: "1:1095510209034:web:9dac124513d1eb584a25f3" };
+            if (!window.firebaseApps || !firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+            firebase.auth().onAuthStateChanged(u => {
+                const st = document.getElementById('dynamic-premium-status');
+                if (u && st) st.textContent = 'Usuário logado: ' + (u.email || u.uid);
+            });
+        </script>
+        <script src="/frontend/js/premiumDynamic.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                initPremiumDynamic();
+                const second = document.getElementById('dynamic-premium-btn-2');
+                if (second) {
+                    second.addEventListener('click', () => {
+                        const original = document.getElementById('dynamic-premium-btn');
+                        if (original) original.click();
+                    });
+                }
+            });
+        </script>
+        <script>
         // Countdown Timer
         function initCountdown() {
             // Check if deadline exists in localStorage

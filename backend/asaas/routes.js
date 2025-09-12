@@ -38,6 +38,7 @@ router.post('/subscription', async (req, res) => {
             customer: asaasCustomerId,
             value: subscriptionPlan.value, // Ex: 59.90
             description: subscriptionPlan.description, // Ex: "Plano Premium - AgroCultive"
+            cycle: subscriptionPlan.cycle || 'MONTHLY' // Permite anual (YEARLY)
         });
 
         // 3. Atualiza nosso banco de dados com os detalhes da assinatura
@@ -129,6 +130,23 @@ router.get('/premium-feature', checkAuthAndPremium, (req, res) => {
     res.status(200).json({
         message: `Bem-vindo ao recurso premium, ${req.user.name}! Seu status é ${req.user.premium.status}.`
     });
+});
+
+// Rota para obter o link de pagamento existente (se já criado)
+router.get('/payment-link', checkAuth, async (req, res) => {
+    try {
+        const user = req.user;
+        if (user?.premium?.paymentLink) {
+            return res.json({
+                paymentLink: user.premium.paymentLink,
+                premiumStatus: user.premium.status || 'TRIAL'
+            });
+        }
+        return res.status(404).json({ error: 'Link de pagamento não encontrado.' });
+    } catch (e) {
+        console.error('Erro em /asaas/payment-link:', e);
+        return res.status(500).json({ error: 'Falha ao obter link de pagamento.' });
+    }
 });
 
 module.exports = router;
