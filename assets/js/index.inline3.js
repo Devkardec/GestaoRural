@@ -61,23 +61,22 @@
             return outputArray;
         }
 
-        // NOVO: Envia a inscrição para o seu servidor (exemplo)
+        // NOVO: Envia a inscrição para o servidor com logs robustos
         async function sendSubscriptionToServer(subscription) {
-            console.log('Enviando inscrição para o servidor:', JSON.stringify(subscription));
+            if (!auth?.currentUser) { console.warn('sendSubscriptionToServer sem usuário logado. Abortando.'); return; }
+            console.log('Enviando inscrição para o servidor (endpoint):', subscription?.endpoint);
             try {
                 const response = await fetch('/.netlify/functions/save-subscription', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ subscription, userId: auth.currentUser.uid }),
                 });
-
+                const text = await response.text().catch(()=>'<sem corpo>');
                 if (!response.ok) {
+                    console.error('Falha ao salvar inscrição:', response.status, text);
                     throw new Error('Falha ao salvar inscrição no servidor.');
                 }
-
-                console.log('Inscrição salva no servidor com sucesso.');
+                console.log('Inscrição salva no servidor com sucesso. Resposta:', text);
             } catch (error) {
                 console.error('Erro ao enviar inscrição para o servidor:', error);
             }
@@ -120,6 +119,26 @@
                 }
             }
         }
+
+        // Garante que exista subscription sem repedir permissão
+        async function ensurePushSubscription() {
+            if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+            if (Notification.permission !== 'granted') { return; }
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const existing = await reg.pushManager.getSubscription();
+                if (existing) {
+                    console.log('ensurePushSubscription: já existe subscription. Reenviando...');
+                    await sendSubscriptionToServer(existing);
+                } else {
+                    console.log('ensurePushSubscription: criando nova subscription.');
+                    await subscribeUserToPush();
+                }
+            } catch (e) {
+                console.warn('ensurePushSubscription falhou:', e);
+            }
+        }
+        window.ensurePushSubscription = ensurePushSubscription;
 
         // VARIÁVEIS GLOBAIS DO FIREBASE
         let app, auth, db; // ✅ JÁ DECLARADAS
@@ -2095,14 +2114,28 @@ function updateCurrentWeatherPanel(data) {
                 }
             }
 
+            function closePremiumModal() {
+                const modal = document.getElementById('premium-status-modal');
+                if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+            }
+            window.closePremiumModal = closePremiumModal;
+
             document.addEventListener('click', (e) => {
                 if (e.target.id === 'open-premium-status') {
                     e.preventDefault();
                     fetchAndShowPremiumModal();
                 }
-                if (e.target.id === 'close-premium-status' || (e.target.id === 'premium-status-modal' && e.target === e.currentTarget)) {
-                    const modal = document.getElementById('premium-status-modal');
-                    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+                if (
+                    e.target.id === 'close-premium-status' ||
+                    e.target.closest?.('#close-premium-status') ||
+                    (e.target.id === 'premium-status-modal' && e.target === e.currentTarget)
+                ) {
+                    closePremiumModal();
+                }
+            });
+            document.addEventListener('keydown', (e)=>{
+                if (e.key === 'Escape') {
+                    closePremiumModal();
                 }
             });
 
@@ -2163,8 +2196,8 @@ function updateCurrentWeatherPanel(data) {
                     const permission = await Notification.requestPermission();
 
                     if (permission === 'granted') {
-                        showToast('Notificações ativadas! Sincronizando com o servidor...');
-                        await subscribeUserToPush(); // <-- Chamar a nova função
+                        showToast('Notificações ativadas! Garantindo inscrição...');
+                        await ensurePushSubscription();
                     } else {
                         showToast('Você não receberá notificações. Mude a permissão nas configurações do navegador se desejar.', 'warning');
                     }
@@ -2195,8 +2228,8 @@ function updateCurrentWeatherPanel(data) {
                     setTimeout(async () => {
                         // Verificar se a permissão já foi concedida para não perguntar de novo
                         if (Notification.permission === 'granted') {
-                            console.log('Permissão já concedida. Sincronizando inscrição.');
-                            await subscribeUserToPush();
+                            console.log('Permissão já concedida. Garantindo inscrição push.');
+                            await ensurePushSubscription();
                         } else if (Notification.permission === 'default') {
                             // Se ainda não foi perguntado, agora é uma boa hora.
                             await requestNotificationPermission();
@@ -2387,6 +2420,58 @@ function updateCurrentWeatherPanel(data) {
                             setTimeout(()=>updateSubscriptionStatus(), 1500);
                             // Atualização periódica (5 min) para manter dias restantes corretos em longas sessões
                             setInterval(()=>updateSubscriptionStatus(), 5*60*1000);
+
+                            // Garantir inscrição push silenciosamente (se permissão já dada)
+                            setTimeout(()=>{ try { ensurePushSubscription(); } catch(e){ console.warn('ensurePushSubscription pós-login falhou', e); } }, 1000);
+
+                            // Botão de teste de push (debug) - evita duplicar
+                            if (!document.getElementById('debug-test-push')) {
+                                const btn = document.createElement('button');
+                                btn.id = 'debug-test-push';
+                                btn.textContent = 'Testar Push';
+                                btn.style.position = 'fixed';
+                                btn.style.bottom = '90px';
+                                btn.style.right = '18px';
+                                btn.style.zIndex = '9999';
+                                btn.style.background = '#2563eb';
+                                btn.style.color = '#fff';
+                                btn.style.fontSize = '12px';
+                                btn.style.padding = '6px 10px';
+                                btn.style.borderRadius = '6px';
+                                btn.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
+                                btn.style.opacity = '0.85';
+                                btn.style.transition = 'opacity .2s';
+                                btn.onmouseenter = () => btn.style.opacity = '1';
+                                btn.onmouseleave = () => btn.style.opacity = '0.85';
+                                btn.onclick = async () => {
+                                    try {
+                                        if (!auth.currentUser) return alert('Usuário não logado');
+                                        await ensurePushSubscription();
+                                        const res = await fetch('/.netlify/functions/send-webpush', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                userId: auth.currentUser.uid,
+                                                title: 'Teste Push',
+                                                body: 'Notificação de teste enviada com sucesso!',
+                                                url: '/',
+                                                type: 'test'
+                                            })
+                                        });
+                                        const txt = await res.text();
+                                        console.log('Resposta test-push:', res.status, txt);
+                                        if (res.ok) {
+                                            showToast('Push de teste enviado!');
+                                        } else {
+                                            showToast('Falha ao enviar push de teste', 'error');
+                                        }
+                                    } catch (e) {
+                                        console.error('Erro test push:', e);
+                                        showToast('Erro test push', 'error');
+                                    }
+                                };
+                                document.body.appendChild(btn);
+                            }
 
                             // Weather
                             if (navigator.geolocation) {
