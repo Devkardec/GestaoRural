@@ -42,6 +42,8 @@ const messaging = admin.messaging(); // Keep messaging if it's used elsewhere in
 
 // --- Web Push local (alternativa ao Netlify) ---
 const webpush = require('web-push');
+const cron = require('node-cron');
+const { processReminders } = require('./cron/processReminders');
 function ensureVapidLocal() {
     if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
         throw new Error('VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY ausentes no backend (Render).');
@@ -222,6 +224,35 @@ app.post('/api/send-webpush', express.json(), async (req, res) => {
     }
 });
 
+// Endpoint manual para disparar cron (protegido por ADMIN_FORCE_TOKEN)
+app.post('/internal/cron/process-reminders', express.json(), async (req, res) => {
+    try {
+        const secret = process.env.ADMIN_FORCE_TOKEN;
+        if (!secret) return res.status(500).json({ error: 'ADMIN_FORCE_TOKEN não configurado.' });
+        const { token } = req.body || {};
+        if (!token || token !== secret) return res.status(403).json({ error: 'Token inválido.' });
+        const result = await processReminders(db);
+        return res.json(result);
+    } catch (e) {
+        console.error('Erro ao processar reminders manual:', e);
+        return res.status(500).json({ error: 'Falha no cron manual', details: e.message });
+    }
+});
+
+// Agendamento via node-cron (a cada minuto) controlado por variável ENABLE_CRON
+if (process.env.ENABLE_CRON === 'true') {
+    cron.schedule('*/1 * * * *', async () => {
+        try {
+            const result = await processReminders(db);
+            console.log('Cron reminders:', result);
+        } catch (e) {
+            console.error('Falha cron reminders:', e);
+        }
+    }, { timezone: 'America/Sao_Paulo' });
+    console.log('Cron de reminders habilitado (*/1 * * * *).');
+} else {
+    console.log('Cron de reminders desabilitado (ENABLE_CRON != true).');
+}
 // Body parsing global EXCETO para webhook Asaas (mantemos raw body para assinatura)
 app.use((req, res, next) => {
     if (req.path.startsWith('/asaas/webhook')) return next();
