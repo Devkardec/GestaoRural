@@ -376,23 +376,63 @@
                 <div id="login-msg" style="font-size:12px;color:#374151;line-height:1.3"></div>
             </div>
             <script>
-                (function(){
+                // Painel de login aprimorado: só inicializa após DOM completo
+                document.addEventListener('DOMContentLoaded', () => {
                     const emailEl = document.getElementById('login-email');
                     const senhaEl = document.getElementById('login-senha');
                     const entrarBtn = document.getElementById('btn-entrar');
                     const criarBtn = document.getElementById('btn-criar');
                     const sairBtn = document.getElementById('btn-sair');
                     const msg = document.getElementById('login-msg');
-                    function setMsg(t, ok=false){ msg.textContent = t; msg.style.color = ok? '#065f46':'#b91c1c'; }
-                    entrarBtn.onclick = async ()=>{
-                        try { await firebase.auth().signInWithEmailAndPassword(emailEl.value.trim(), senhaEl.value); setMsg('Login OK', true);} catch(e){ setMsg(e.message); }
-                    };
-                    criarBtn.onclick = async ()=>{
-                        try { await firebase.auth().createUserWithEmailAndPassword(emailEl.value.trim(), senhaEl.value); setMsg('Conta criada (trial ativo)', true);} catch(e){ setMsg(e.message); }
-                    };
-                    sairBtn.onclick = async ()=>{ await firebase.auth().signOut(); setMsg('Saiu da sessão', true); };
-                    firebase.auth().onAuthStateChanged(u=>{ sairBtn.style.display = u? 'block':'none'; });
-                })();
+                    const panel = document.getElementById('login-panel');
+                    function setMsg(t, ok=false){ if(!msg) return; msg.textContent = t; msg.style.color = ok? '#065f46':'#b91c1c'; }
+                    function lock(disabled){
+                        [entrarBtn, criarBtn, emailEl, senhaEl].forEach(el=>{ if(el) el.disabled = disabled; });
+                    }
+                    async function ensurePersistence(){
+                        try { await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(_){}
+                    }
+                    if (!window.firebase || !firebase.auth) {
+                        setMsg('Firebase não carregou. Recarregue a página.');
+                        return;
+                    }
+                    ensurePersistence();
+                    entrarBtn?.addEventListener('click', async ()=>{
+                        const email = emailEl.value.trim();
+                        const pass = senhaEl.value;
+                        if(!email || !pass){ setMsg('Informe email e senha.'); return; }
+                        lock(true); setMsg('Entrando...');
+                        try {
+                            await firebase.auth().signInWithEmailAndPassword(email, pass);
+                            setMsg('Login OK', true);
+                        } catch(e){ console.error('Login error', e); setMsg(e.message); }
+                        finally { lock(false); }
+                    });
+                    criarBtn?.addEventListener('click', async ()=>{
+                        const email = emailEl.value.trim();
+                        const pass = senhaEl.value;
+                        if(!email || !pass){ setMsg('Informe email e senha.'); return; }
+                        lock(true); setMsg('Criando conta...');
+                        try {
+                            await firebase.auth().createUserWithEmailAndPassword(email, pass);
+                            setMsg('Conta criada (trial ativo)', true);
+                        } catch(e){ console.error('Create user error', e); setMsg(e.message); }
+                        finally { lock(false); }
+                    });
+                    sairBtn?.addEventListener('click', async ()=>{
+                        try { await firebase.auth().signOut(); setMsg('Saiu da sessão', true); } catch(e){ setMsg(e.message); }
+                    });
+                    firebase.auth().onAuthStateChanged(u=>{
+                        if(!panel) return;
+                        sairBtn.style.display = u? 'block':'none';
+                        if (u) {
+                            // Se já logado, não escondemos todo painel, só campos (feito acima no outro script)
+                            setMsg('Sessão ativa: ' + (u.email || u.uid), true);
+                        } else {
+                            setMsg('Não logado. Entre ou crie sua conta.');
+                        }
+                    });
+                });
             </script>
         <script src="/frontend/js/premiumDynamic.js"></script>
         <script>
