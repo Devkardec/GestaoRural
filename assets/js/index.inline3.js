@@ -2459,11 +2459,26 @@ function updateCurrentWeatherPanel(data) {
                                             })
                                         });
                                         const txt = await res.text();
+                                        let parsed = null;
+                                        try { parsed = JSON.parse(txt); } catch(_){}
                                         console.log('Resposta test-push:', res.status, txt);
                                         if (res.ok) {
                                             showToast('Push de teste enviado!');
                                         } else {
-                                            showToast('Falha ao enviar push de teste', 'error');
+                                            const code = parsed?.code || res.status;
+                                            const details = parsed?.details || 'Sem detalhes';
+                                            let hint = '';
+                                            if (code === 410 || code === 404) {
+                                                hint = ' Subscription inválida. Vou recriar...';
+                                                try {
+                                                    const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
+                                                    if (sub) await sub.unsubscribe();
+                                                    await ensurePushSubscription();
+                                                } catch(e2){ console.warn('Falha ao recriar subscription', e2); }
+                                            } else if (code === 401 || code === 403) {
+                                                hint = ' Possível mismatch de chaves VAPID (frontend vs backend).';
+                                            }
+                                            showToast(`Falha push (code ${code}): ${details}.${hint}`, 'error');
                                         }
                                     } catch (e) {
                                         console.error('Erro test push:', e);
