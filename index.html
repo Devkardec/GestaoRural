@@ -1540,7 +1540,27 @@ window.addEventListener('DOMContentLoaded', function(){
                         <p id="premium-days-remaining" class="text-lg font-semibold text-gray-800">--</p>
                 </div>
          </div>
-         <a id="premium-payment-link" href="https://www.asaas.com/c/o0uqcilm70ewj60u" target="_blank" class="block w-full text-center bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold py-3 rounded-lg shadow hover:from-yellow-600 hover:to-orange-600 transition mb-3">Assinar / Renovar</a>
+            <button id="premium-payment-link" type="button" class="block w-full text-center bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold py-3 rounded-lg shadow hover:from-yellow-600 hover:to-orange-600 transition mb-3 active:scale-95">
+                Assinar / Renovar
+            </button>
+            <script>
+                // Redirecionar para a experiência interna de Pacote Premium ao invés do link externo.
+                (function(){
+                    const btn = document.getElementById('premium-payment-link');
+                    if (btn) {
+                        btn.addEventListener('click', ()=> {
+                             // Se existir botão principal do dashboard que já abre a página/modal premium, reutilizamos.
+                             const main = document.getElementById('premium-btn');
+                             if (main) {
+                                  main.click();
+                             } else {
+                                  // Fallback: navegar para premium.html
+                                  window.location.href = 'premium.html';
+                             }
+                        });
+                    }
+                })();
+            </script>
          <p class="text-[11px] text-gray-500 leading-relaxed">Após o pagamento seu acesso é ativado. Caso demore, contate o suporte com o email da sua conta.</p>
     </div>
 </div>
