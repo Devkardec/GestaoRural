@@ -208,16 +208,15 @@
                 
                                 <div class="flex flex-col gap-4 items-center">
                                     <a href="https://www.asaas.com/c/o0uqcilm70ewj60u" target="_blank" class="cta-button inline-block text-white font-bold text-xl px-12 py-4 rounded-2xl no-underline">
-                                            <i class="fas fa-rocket mr-3"></i>Link Fixo (Fallback)
+                                            <i class="fas fa-rocket mr-3"></i>Assinar (Link Oficial)
                                     </a>
-                                    <div class="w-full max-w-md bg-white bg-opacity-20 p-4 rounded-2xl">
-                                                            <p id="dynamic-premium-status" class="text-sm text-white mb-1">Gerar link personalizado (login necessário)</p>
-                                                            <p id="dynamic-days-remaining" class="text-xs text-white mb-2 opacity-90"></p>
-                                                            <select id="dynamic-plan-select" class="w-full mb-3 p-2 rounded bg-white bg-opacity-80 text-gray-800 text-sm">
-                                                                <option value="YEARLY">Plano Anual (R$ 49,90)</option>
-                                                                <option value="MONTHLY">Plano Mensal (R$ 9,90)</option>
-                                                            </select>
-                                                            <button id="dynamic-premium-btn" class="w-full cta-button text-white font-semibold py-3 rounded-xl text-lg">Gerar Link Personalizado</button>
+                                    <div class="w-full max-w-md bg-white bg-opacity-20 p-4 rounded-2xl text-left text-white text-sm leading-relaxed">
+                                        <strong>Como funciona o teste de 7 dias:</strong><br>
+                                        1. Você inicia com status TRIAL automaticamente.<br>
+                                        2. Ao completar 7 dias sem pagamento seu acesso premium vira INACTIVE.<br>
+                                        3. Depois de pagar pelo link acima seu acesso é ativado manualmente (ou pelo webhook quando finalizarmos).<br>
+                                        <br>
+                                        <em>Este link é fixo e serve para todos. Depois de confirmar o pagamento você poderá ser ativado.</em>
                                     </div>
                                 </div>
                 
@@ -318,9 +317,9 @@
                 
                                 <div class="flex flex-col gap-4 items-center">
                                     <a href="https://www.asaas.com/c/o0uqcilm70ewj60u" target="_blank" class="cta-button inline-block text-white font-bold text-xl px-12 py-4 rounded-2xl no-underline">
-                                            <i class="fas fa-star mr-3"></i>Ativar Premium (Fallback)
+                                            <i class="fas fa-star mr-3"></i>Assinar Agora
                                     </a>
-                                    <button id="dynamic-premium-btn-2" class="cta-button inline-block text-white font-bold text-xl px-12 py-4 rounded-2xl">Gerar Link Personalizado</button>
+                                    <p class="text-xs opacity-80 max-w-md">Após o pagamento seu status será atualizado. Caso não ocorra automático, entre em contato com o suporte informando o email usado no app.</p>
                                 </div>
             </div>
         </section>
@@ -328,53 +327,9 @@
     
             <!-- Firebase Compat (facilita uso direto via firebase.* sem modules) -->
             <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-            <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-        <script>
-            // Inicializa Firebase simples só para auth nesta página
-            const firebaseConfig = { apiKey: "AIzaSyAtwYV-toZBKbSwg2PE4AhTsJ47AaPKD4Q", authDomain: "agrocultiveapps.firebaseapp.com", projectId: "agrocultiveapps", storageBucket: "agrocultiveapps.appspot.com", messagingSenderId: "1095510209034", appId: "1:1095510209034:web:9dac124513d1eb584a25f3" };
-                if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-                firebase.auth().onAuthStateChanged(u => {
-                    const st = document.getElementById('dynamic-premium-status');
-                    const loginPanel = document.getElementById('login-panel');
-                    if (u) {
-                        // Mantém painel visível para permitir troca de conta / logout
-                        if (st) st.textContent = 'Logado: ' + (u.email || u.uid) + ' (pode gerar o link)';
-                        if (loginPanel) {
-                            loginPanel.style.display = 'block';
-                            loginPanel.setAttribute('data-auth', 'logged');
-                            const emailField = loginPanel.querySelector('#login-email');
-                            const passField = loginPanel.querySelector('#login-senha');
-                            const entrarBtn = loginPanel.querySelector('#btn-entrar');
-                            const criarBtn = loginPanel.querySelector('#btn-criar');
-                            // Esconde campos de entrada quando já logado para não confundir
-                            [emailField, passField, entrarBtn, criarBtn].forEach(el=>{ if(el) el.style.display='none'; });
-                        }
-                    } else {
-                        if (st) st.textContent = 'Não logado. Faça login para gerar link.';
-                        if (loginPanel) {
-                            loginPanel.style.display = 'block';
-                            loginPanel.removeAttribute('data-auth');
-                            const emailField = loginPanel.querySelector('#login-email');
-                            const passField = loginPanel.querySelector('#login-senha');
-                            const entrarBtn = loginPanel.querySelector('#btn-entrar');
-                            const criarBtn = loginPanel.querySelector('#btn-criar');
-                            [emailField, passField, entrarBtn, criarBtn].forEach(el=>{ if(el) el.style.display=''; });
-                        }
-                    }
-                });
-        </script>
+            <!-- Removido fluxo de login e link personalizado para simplificar -->
             <!-- Painel simples de login -->
-            <div id="login-panel" style="position:fixed;bottom:20px;right:20px;max-width:300px;background:rgba(255,255,255,0.95);padding:16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:9999;font-family:Inter,sans-serif;">
-                <h4 style="margin:0 0 8px;font-size:14px;font-weight:600;color:#1f2937">Login Rápido</h4>
-                <input id="login-email" type="email" placeholder="Email" style="width:100%;padding:8px 10px;margin-bottom:6px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
-                <input id="login-senha" type="password" placeholder="Senha" style="width:100%;padding:8px 10px;margin-bottom:8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;">
-                <div style="display:flex;gap:6px;margin-bottom:6px;">
-                    <button id="btn-entrar" style="flex:1;background:#2563eb;color:#fff;border:none;padding:8px 0;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">Entrar</button>
-                    <button id="btn-criar" style="flex:1;background:#10b981;color:#fff;border:none;padding:8px 0;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">Criar</button>
-                </div>
-                <button id="btn-sair" style="display:none;width:100%;background:#f43f5e;color:#fff;border:none;padding:8px 0;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;margin-bottom:6px;">Sair</button>
-                <div id="login-msg" style="font-size:12px;color:#374151;line-height:1.3"></div>
-            </div>
+            <!-- Painel de login removido -->
             <script>
                 // Painel de login aprimorado: só inicializa após DOM completo
                 document.addEventListener('DOMContentLoaded', () => {
@@ -434,19 +389,7 @@
                     });
                 });
             </script>
-        <script src="/frontend/js/premiumDynamic.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                initPremiumDynamic();
-                const second = document.getElementById('dynamic-premium-btn-2');
-                if (second) {
-                    second.addEventListener('click', () => {
-                        const original = document.getElementById('dynamic-premium-btn');
-                        if (original) original.click();
-                    });
-                }
-            });
-        </script>
+        <!-- Scripts de link personalizado removidos -->
         <script>
         // Countdown Timer
         function initCountdown() {
