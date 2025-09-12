@@ -89,8 +89,11 @@ router.get('/status', checkAuth, async (req, res) => {
 
         const trialEndDate = user.premium.trialEndDate?.toDate ? user.premium.trialEndDate.toDate() : new Date();
         const now = new Date();
-        let status = user.premium.status || 'TRIAL';
-        let daysRemaining = Math.ceil((trialEndDate - now) / 86400000);
+    let status = user.premium.status || 'TRIAL';
+    // Novo cálculo: queremos exibir "dias restantes" excluindo o dia corrente.
+    // Exemplo: se o teste começou ontem e faltam ~6.4 dias, exibimos 6 (antes era 7 via Math.ceil).
+    const msLeft = trialEndDate - now;
+    let daysRemaining = msLeft <= 0 ? 0 : Math.floor(msLeft / 86400000);
 
         if (status === 'TRIAL' && daysRemaining < 0) {
             status = 'INACTIVE';
@@ -165,7 +168,8 @@ router.get('/me', checkAuth, async (req, res) => {
         let status = u?.premium?.status || 'TRIAL';
         let daysRemaining = 0;
         if (trialEndDate) {
-            daysRemaining = Math.ceil((trialEndDate - now)/86400000);
+            const msLeft = trialEndDate - now;
+            daysRemaining = msLeft <= 0 ? 0 : Math.floor(msLeft / 86400000);
             if (status === 'TRIAL' && daysRemaining < 0) {
                 status = 'INACTIVE';
                 daysRemaining = 0;
