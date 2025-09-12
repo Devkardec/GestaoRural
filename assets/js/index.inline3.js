@@ -1966,9 +1966,13 @@ function updateCurrentWeatherPanel(data) {
 };
 
             // --- NOVO: FUNÇÃO PARA ATUALIZAR STATUS DA ASSINATURA ---
-            async function updateSubscriptionStatus() {
+            async function updateSubscriptionStatus(attempt=1) {
                 const statusElement = document.getElementById('subscription-status');
                 if (!statusElement) return;
+                if (!statusElement.dataset.initialized) {
+                    statusElement.textContent = 'Carregando...';
+                    statusElement.dataset.initialized = '1';
+                }
 
                 try {
                     if (!auth.currentUser) {
@@ -1993,6 +1997,9 @@ function updateCurrentWeatherPanel(data) {
                         console.error('Status check failed:', { status: response.status, error: errorText });
                         statusElement.textContent = 'Status Indisponível';
                         statusElement.className = 'text-xs font-medium text-white bg-red-500 px-2 py-1 rounded-full';
+                        if (attempt < 3) {
+                            setTimeout(()=>updateSubscriptionStatus(attempt+1), 1500 * attempt);
+                        }
                         return;
                     }
 
@@ -2021,6 +2028,9 @@ function updateCurrentWeatherPanel(data) {
                     console.error('Error details:', { message: error.message, stack: error.stack });
                     statusElement.textContent = 'Erro de Status';
                     statusElement.className = 'text-xs font-medium text-white bg-red-500 px-2 py-1 rounded-full';
+                    if (attempt < 3) {
+                        setTimeout(()=>updateSubscriptionStatus(attempt+1), 2000 * attempt);
+                    }
                 }
             }
 
@@ -2348,11 +2358,12 @@ function updateCurrentWeatherPanel(data) {
                             console.log('Collections setup complete. Initializing listeners...');
 
                             // Initialize listeners and UI com um pequeno delay para garantir que o Firebase esteja pronto
-                            setTimeout(() => {
-                                initializeListeners();
-                                initializeUIEventListeners();
-                                updateSubscriptionStatus(); // <-- Adicionado para buscar status
-                            }, 100);
+                            // Inicialização imediata (sem esperar 100ms) para reduzir atraso em mobile
+                            initializeListeners();
+                            initializeUIEventListeners();
+                            updateSubscriptionStatus(); // busca inicial
+                            // Segunda tentativa pós-render para garantir atualização em mobile lento
+                            setTimeout(()=>updateSubscriptionStatus(), 1500);
 
                             // Weather
                             if (navigator.geolocation) {
