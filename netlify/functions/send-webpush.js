@@ -69,14 +69,20 @@ exports.handler = async (event) => {
       }
     };
 
-    await webpush.sendNotification(subscription, JSON.stringify(notificationPayload));
+    console.log('Enviando push para endpoint:', subscription.endpoint);
+    try {
+      await webpush.sendNotification(subscription, JSON.stringify(notificationPayload));
+    } catch (pushErr) {
+      console.error('Erro webpush.sendNotification:', pushErr && pushErr.stack || pushErr);
+      throw pushErr;
+    }
     return { statusCode: 200, body: JSON.stringify({ success: true }) };
   } catch (e) {
-    console.error('Falha ao enviar push:', e);
+  console.error('Falha ao enviar push (catch externo):', e && e.stack || e);
     // Se subscription inválida/expirada (410/404) podemos remover
     if (e.statusCode === 410 || e.statusCode === 404) {
       try { await db.collection('subscriptions').doc(userId).delete(); } catch(_){}
     }
-    return { statusCode: 500, body: JSON.stringify({ error: 'Falha ao enviar push', details: e.message }) };
+  return { statusCode: 500, body: JSON.stringify({ error: 'Falha ao enviar push', details: e.message, code: e.statusCode || null, stack: e.stack?.split('\n').slice(0,4) }) };
   }
 };
