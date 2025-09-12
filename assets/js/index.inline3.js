@@ -2012,9 +2012,16 @@ function updateCurrentWeatherPanel(data) {
                     } else if (data.premiumStatus === 'TRIAL') {
                         const dr = typeof data.daysRemaining === 'number' ? data.daysRemaining : (() => {
                             const endDate = new Date(data.trialEndDate);
-                            return Math.max(0, Math.ceil((endDate - new Date()) / 86400000));
+                            const diff = endDate - new Date();
+                            if (diff <= 0) return 0;
+                            return Math.floor(diff / 86400000); // manter coerente com backend
                         })();
-                        statusElement.textContent = dr > 0 ? `Teste (${dr} dias)` : 'Teste Expirado';
+                        if (dr > 0) {
+                            const plural = dr === 1 ? 'dia' : 'dias';
+                            statusElement.textContent = `Teste (${dr} ${plural})`;
+                        } else {
+                            statusElement.textContent = 'Teste Expirado';
+                        }
                         statusElement.className = 'text-xs font-medium text-white bg-blue-500 px-2 py-1 rounded-full';
                     } else if (data.premiumStatus === 'INACTIVE') {
                         statusElement.textContent = 'Inativo';
@@ -2050,11 +2057,23 @@ function updateCurrentWeatherPanel(data) {
                     current.textContent = labelMap[data.premiumStatus] || (data.premiumStatus || '--');
                     const dr = typeof data.daysRemaining === 'number' ? data.daysRemaining : '--';
                     days.textContent = dr;
-                    line.textContent = data.premiumStatus === 'ACTIVE'
-                        ? 'Sua assinatura está ativa.'
-                        : data.premiumStatus === 'TRIAL'
-                            ? `Período de teste em andamento. Restam ${dr} dia(s).`
-                            : 'Seu acesso premium está inativo. Realize o pagamento para ativar.';
+                    if (data.premiumStatus === 'ACTIVE') {
+                        line.textContent = 'Sua assinatura está ativa.';
+                    } else if (data.premiumStatus === 'TRIAL') {
+                        if (typeof dr === 'number') {
+                            if (dr === 0) {
+                                line.textContent = 'Seu período de teste terminou.';
+                            } else if (dr === 1) {
+                                line.textContent = 'Período de teste em andamento. Resta 1 dia.';
+                            } else {
+                                line.textContent = `Período de teste em andamento. Restam ${dr} dias.`;
+                            }
+                        } else {
+                            line.textContent = 'Período de teste em andamento.';
+                        }
+                    } else {
+                        line.textContent = 'Seu acesso premium está inativo. Realize o pagamento para ativar.';
+                    }
                 } else {
                     current.textContent = '--';
                     days.textContent = '--';
