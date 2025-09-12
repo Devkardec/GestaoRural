@@ -78,7 +78,9 @@ exports.handler = async (event) => {
     }
     return { statusCode: 200, body: JSON.stringify({ success: true }) };
   } catch (e) {
-  console.error('Falha ao enviar push (catch externo):', e && e.stack || e);
+    console.error('Falha ao enviar push (catch externo): statusCode=', e?.statusCode, ' message=', e?.message);
+    if (e?.headers) { try { console.error('Headers resposta FCM:', JSON.stringify(e.headers)); } catch(_){} }
+    if (e?.body) { console.error('Body resposta FCM bruto:', e.body); }
     // Se subscription inválida/expirada (410/404) podemos remover
     if (e.statusCode === 410 || e.statusCode === 404) {
       try { await db.collection('subscriptions').doc(userId).delete(); } catch(_){}
