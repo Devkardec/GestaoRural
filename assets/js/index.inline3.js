@@ -42,8 +42,8 @@
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-messaging.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
-        // NOVO: Chave pública VAPID (substitua pela sua chave gerada no backend)
-        const FRONTEND_VAPID_PUBLIC_KEY = 'BAvz0_E24ZW7r7nU_ZjCld-G7N7qQ5jRk2hoTMAH3Uqr0X90NzFD6y34KYgQ3xFQcN786kDNou-lhq_cRqOcED8';
+    // NOVO: Chave pública VAPID (atualizada em 2025-09-12)
+    const FRONTEND_VAPID_PUBLIC_KEY = 'BFWJ_5_CL58BM1UVVDLZ16fA5khPSRyPd52mii1tVy4cwI2GK3xPZmffZbhWmKtTscYHBA0gzBQ4WM2JUQ58T_s';
 
         // NOVO: Converte a chave VAPID para o formato correto
         function urlBase64ToUint8Array(base64String) {

@@ -22,12 +22,12 @@ async function checkAuthAndPremium(req, res, next) {
         // 2. Busca o usuário no Firestore; se não existir, cria automaticamente (auto-provisioning)
         let user = await findUserByUID(uid);
         if (!user) {
-            console.log('⚠️  Usuário não encontrado. Criando perfil trial automaticamente:', uid);
+            console.log('⚠️  Usuário não encontrado. Criando perfil de teste automaticamente:', uid);
             try {
                 user = await createUserWithTrial(uid, { email: decodedToken.email, name: decodedToken.name });
-                console.log('✅ Perfil trial criado on-demand.');
+                console.log('✅ Perfil de teste criado on-demand.');
             } catch (createErr) {
-                console.error('❌ Falha ao criar perfil trial automaticamente:', createErr);
+                console.error('❌ Falha ao criar perfil de teste automaticamente:', createErr);
                 return res.status(500).json({ error: 'Falha ao criar perfil do usuário.' });
             }
         }
@@ -111,8 +111,14 @@ async function checkAuth(req, res, next) {
         console.log('📂 Fetching user from database...');
         let user = await findUserByUID(uid);
         if (!user) {
-            console.log('❌ User not found in database for UID:', uid);
-            return res.status(404).json({ error: 'Usuário não encontrado no banco de dados.' });
+            console.log('⚠️  Usuário não encontrado no banco (checkAuth). Criando perfil trial automaticamente:', uid);
+            try {
+                user = await createUserWithTrial(uid, { email: decodedToken.email, name: decodedToken.name });
+                console.log('✅ Perfil trial criado em checkAuth.');
+            } catch (createErr) {
+                console.error('❌ Falha ao auto-provisionar usuário em checkAuth:', createErr);
+                return res.status(500).json({ error: 'Falha ao criar perfil do usuário.' });
+            }
         }
 
         // Bypass admin também aqui para rotas que usam apenas checkAuth (ex: /asaas/status)

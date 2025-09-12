@@ -28,7 +28,7 @@ async function atualizarStatusPremium(evento) {
   // Adicione outros eventos conforme necessário
 }
 
-// Cria usuário com trial de 7 dias
+// Cria usuário com período de teste de 7 dias
 async function criarUsuarioTrial(dados) {
   const trialStart = new Date();
   const trialEnd = new Date(trialStart.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -41,7 +41,7 @@ async function criarUsuarioTrial(dados) {
   });
 }
 
-// Verifica e bloqueia usuários que passaram do trial sem pagar
+// Verifica e bloqueia usuários que passaram do período de teste sem pagar
 async function bloquearUsuariosTrialExpirado() {
   const agora = new Date();
   const usuarios = await db.getUsuariosComTrialExpirado(agora);
