@@ -337,11 +337,29 @@
                     const st = document.getElementById('dynamic-premium-status');
                     const loginPanel = document.getElementById('login-panel');
                     if (u) {
-                        if (st) st.textContent = 'Usuário logado: ' + (u.email || u.uid);
-                        if (loginPanel) loginPanel.style.display = 'none';
+                        // Mantém painel visível para permitir troca de conta / logout
+                        if (st) st.textContent = 'Logado: ' + (u.email || u.uid) + ' (pode gerar o link)';
+                        if (loginPanel) {
+                            loginPanel.style.display = 'block';
+                            loginPanel.setAttribute('data-auth', 'logged');
+                            const emailField = loginPanel.querySelector('#login-email');
+                            const passField = loginPanel.querySelector('#login-senha');
+                            const entrarBtn = loginPanel.querySelector('#btn-entrar');
+                            const criarBtn = loginPanel.querySelector('#btn-criar');
+                            // Esconde campos de entrada quando já logado para não confundir
+                            [emailField, passField, entrarBtn, criarBtn].forEach(el=>{ if(el) el.style.display='none'; });
+                        }
                     } else {
                         if (st) st.textContent = 'Não logado. Faça login para gerar link.';
-                        if (loginPanel) loginPanel.style.display = 'block';
+                        if (loginPanel) {
+                            loginPanel.style.display = 'block';
+                            loginPanel.removeAttribute('data-auth');
+                            const emailField = loginPanel.querySelector('#login-email');
+                            const passField = loginPanel.querySelector('#login-senha');
+                            const entrarBtn = loginPanel.querySelector('#btn-entrar');
+                            const criarBtn = loginPanel.querySelector('#btn-criar');
+                            [emailField, passField, entrarBtn, criarBtn].forEach(el=>{ if(el) el.style.display=''; });
+                        }
                     }
                 });
         </script>
