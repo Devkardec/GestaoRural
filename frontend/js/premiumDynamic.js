@@ -108,11 +108,22 @@ async function carregarStatusAtual() {
 window.initPremiumDynamic = function() {
   const btn = document.getElementById('dynamic-premium-btn');
   const select = document.getElementById('dynamic-plan-select');
+  // Espera firebase carregar
+  let attempts = 0;
+  const waitAuth = setInterval(()=>{
+    attempts++;
+    if (window.firebase && firebase.auth) {
+      clearInterval(waitAuth);
+      carregarStatusAtual();
+    } else if (attempts > 20) {
+      clearInterval(waitAuth);
+      console.warn('Firebase auth não disponível para status.');
+    }
+  },250);
   if (btn) {
     btn.addEventListener('click', () => {
       const planKey = (select && select.value) || 'YEARLY';
       criarOuObterLinkPagamento(PLANOS[planKey]);
     });
   }
-  carregarStatusAtual();
 };
