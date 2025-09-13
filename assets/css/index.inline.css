@@ -370,7 +370,9 @@
         height: auto;
     }
 
-    .action-bar button {
+    /* Botões principais do dashboard (mobile base) - agora inclui <a class="action-button"> */
+    .action-bar button,
+    .action-bar .buttons-container > a.action-button {
         padding: 1rem 0.5rem;
         font-size: 0.875rem;
         font-weight: 600;
@@ -390,8 +392,9 @@
         hyphens: auto;
         line-height: 1.2;
     }
-
-    .action-bar button i {
+    /* Ícones dentro dos botões (inclui anchors) */
+    .action-bar button i,
+    .action-bar .buttons-container > a.action-button i {
         font-size: 1.25rem;
         margin-bottom: 0.25rem;
     }
@@ -417,15 +420,32 @@
             max-width: 100%;
         }
         
-        .action-bar button {
+        .action-bar button,
+        .action-bar .buttons-container > a.action-button {
             min-height: 80px;
             height: 80px;
             font-size: 0.8rem;
             padding: 0.75rem 0.25rem;
         }
         
-        .action-bar button i {
+        .action-bar button i,
+        .action-bar .buttons-container > a.action-button i {
             font-size: 1.1rem;
+        }
+    }
+
+    /* NOVO: Tablets pequenos (entre smartphones e breakpoint 768) */
+    @media (min-width: 600px) and (max-width: 767px) {
+        .action-bar .buttons-container {
+            grid-template-columns: repeat(3, 1fr);
+            max-width: 640px;
+            grid-template-rows: unset; /* Permite altura automática conforme conteúdo */
+        }
+        .action-bar button,
+        .action-bar .buttons-container > a.action-button {
+            min-height: 92px;
+            height: 92px;
+            font-size: 0.85rem;
         }
     }
 
@@ -1001,7 +1021,8 @@
             gap: 1rem;
         }
 
-        .action-bar button {
+        .action-bar button,
+        .action-bar .buttons-container > a.action-button {
             padding: 1.25rem 1rem;
             font-size: 1rem;
             min-height: 100px;
@@ -1065,7 +1086,8 @@
             justify-content: center; /* Centraliza os botões */
         }
 
-        .action-bar button {
+        .action-bar button,
+        .action-bar .buttons-container > a.action-button {
             padding: 0.75rem 1.5rem;
             font-size: 1rem;
             min-height: 50px;
@@ -1077,7 +1099,8 @@
             min-width: 140px; /* Largura mínima para uniformidade */
         }
 
-        .action-bar button i {
+        .action-bar button i,
+        .action-bar .buttons-container > a.action-button i {
             margin-bottom: 0;
             margin-right: 0.5rem;
             font-size: 1rem;
@@ -1107,7 +1130,8 @@
             margin: 0 auto;
         }
         
-        .action-bar button {
+        .action-bar button,
+        .action-bar .buttons-container > a.action-button {
             min-height: 45px;
             height: 45px;
             padding: 0.625rem 1.25rem;
@@ -1115,7 +1139,8 @@
             min-width: 130px;
         }
         
-        .action-bar button i {
+        .action-bar button i,
+        .action-bar .buttons-container > a.action-button i {
             font-size: 0.9rem;
         }
     }
