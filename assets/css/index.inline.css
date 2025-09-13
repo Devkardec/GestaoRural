@@ -449,6 +449,26 @@
         }
     }
 
+        /* NOVO: Tablets médios (melhor aproveitamento de largura antes do desktop) */
+        @media (min-width: 880px) and (max-width: 1023px) {
+            .action-bar .buttons-container {
+                grid-template-columns: repeat(4, 1fr) !important; /* 4 colunas equilibradas */
+                max-width: 880px; /* Aproveita mais a largura */
+                gap: 1rem;
+            }
+            .action-bar button,
+            .action-bar .buttons-container > a.action-button {
+                min-height: 95px;
+                height: 95px;
+                font-size: 0.85rem;
+                padding: 1rem 0.75rem;
+            }
+            .action-bar button i,
+            .action-bar .buttons-container > a.action-button i {
+                font-size: 1.15rem;
+            }
+        }
+
     /* Cores dos botões */
     #schedule-btn { background: linear-gradient(135deg, #f97316, #ea580c); }
     #manage-animals-btn { background: linear-gradient(135deg, #ca8a04, #a16207); }
