@@ -8,13 +8,24 @@ const admin = require('firebase-admin');
 // Middleware para verificar autenticação do webhook do Asaas (Access Token preferencial; HMAC opcional)
 function verifyAsaasAuth(req, res, next) {
     const accessHeader = req.headers['asaas-access-token'];
-    // Passa a aceitar ASAAS_ACCESS_TOKEN OU ASAAS_WEBHOOK_SECRET como “token simples” do header
+    // Também aceitar Authorization: Bearer <token> para facilitar testes manuais
+    const bearer = req.headers['authorization']?.replace(/^Bearer\s+/i, '').trim();
+
+    // Passa a aceitar ASAAS_ACCESS_TOKEN OU ASAAS_WEBHOOK_SECRET como “token simples”
     const configuredAccessToken = (process.env.ASAAS_ACCESS_TOKEN || process.env.ASAAS_WEBHOOK_SECRET || '').trim();
 
-    // Se configurou um token no ambiente, valide pelo header asaas-access-token
+    // Log seguro para diagnóstico (não imprime o segredo)
+    const mask = (s) => s ? s.replace(/.(?=.{4})/g, '*') : '(vazio)';
+    console.log(
+        `AsaasAuth debug -> header:${accessHeader ? `len:${accessHeader.length}` : 'none'}, ` +
+        `bearer:${bearer ? `len:${bearer.length}` : 'none'}, ` +
+        `configured:${mask(configuredAccessToken)}`
+    );
+
     if (configuredAccessToken) {
-        if (!accessHeader || accessHeader !== configuredAccessToken) {
-            console.warn('Webhook recebido com asaas-access-token ausente ou inválido.');
+        const provided = accessHeader || bearer;
+        if (!provided || provided !== configuredAccessToken) {
+            console.warn('Webhook: token ausente ou inválido (asaas-access-token ou Authorization).');
             return res.status(401).send('Token de acesso inválido ou ausente.');
         }
         return next();
@@ -111,4 +122,9 @@ router.post('/', verifyAsaasAuth, (req, res) => {
     });
 });
 
+// Endpoint de verificação rápida do token (GET)
+// Responde 200 se o header Authorization: Bearer <token> ou asaas-access-token estiver correto
+router.get('/_check', verifyAsaasAuth, (req, res) => {
+    return res.status(200).json({ ok: true, message: 'Token válido', ts: new Date().toISOString() });
+});
 module.exports = router;
